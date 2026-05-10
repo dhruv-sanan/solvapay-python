@@ -14,4 +14,4 @@ __all__ = [
     "paywall",
     "verify_webhook",
 ]
-__version__ = "0.1.0"
+__version__ = "0.3.0"

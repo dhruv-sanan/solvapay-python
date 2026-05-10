@@ -2,10 +2,12 @@
 
 Community Python SDK for [SolvaPay](https://solvapay.com) — payment rails for the agentic economy.
 
-> **Status:** v0.1, community-maintained. Pending official adoption.
+> **Status:** v0.3, community-maintained. Pending official adoption.
 > Mirrors the most-used surface of [@solvapay/core](https://github.com/solvapay/solvapay-sdk).
 
 Python is the dominant language for agent frameworks (LangChain, FastMCP, CrewAI, AutoGen). SolvaPay's official SDK is TypeScript-only. This SDK brings first-class Python support so agent developers can gate tools behind paywalls without switching ecosystems.
+
+> 🎬 **New in v0.3:** [FastMCP paywall demo](examples/fastmcp-paywall/) — gate any Python MCP tool behind a per-call paywall in <60 seconds.
 
 ## Install
 
@@ -37,6 +39,12 @@ session = sv.create_checkout_session(
 )
 print(session.checkout_url)
 ```
+
+## Examples
+
+| Path | What it shows |
+|---|---|
+| [`examples/fastmcp-paywall/`](examples/fastmcp-paywall/) | A FastMCP server with two paywalled tools, ready to plug into Claude Desktop. Demo for `@paywall.require` + MCP. |
 
 ## TS ↔ Python parity
 
@@ -115,7 +123,9 @@ async def handle_webhook(request: Request) -> dict:
 ## Roadmap
 
 - v0.1 — sync client, hosted checkout, customers, limits, webhooks ✅
-- v0.2 — async client, `@paywall.require` decorator, FastAPI helper, LangChain tool
+- v0.2 — `@paywall.require` decorator, FastAPI webhook router ✅
+- v0.3 — FastMCP paywall demo (`examples/fastmcp-paywall/`) ✅
+- v0.4 — async client, typed webhook events, LangChain tool
 
 ## Contributing
 
