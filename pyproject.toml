@@ -36,6 +36,7 @@ Issues = "https://github.com/dhruv-sanan/solvapay-python/issues"
 
 [dependency-groups]
 dev = [
+    "fastapi>=0.110",
     "pytest>=8",
     "pytest-asyncio>=0.23",
     "respx>=0.21",
