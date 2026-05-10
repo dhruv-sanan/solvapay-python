@@ -1,9 +1,19 @@
 """Public SolvaPay client. Synchronous; mirrors @solvapay/core surface."""
 from __future__ import annotations
 
+import time
+
 from solvapay._config import resolve_api_key, resolve_base_url
 from solvapay._http import HttpClient
-from solvapay.models import CheckoutSession
+from solvapay.exceptions import SolvaPayAPIError
+from solvapay.models import (
+    CheckLimitsRequest,
+    CheckoutSession,
+    CheckoutSessionRequest,
+    CreateCustomerRequest,
+    Customer,
+    LimitResponse,
+)
 
 
 class SolvaPay:
@@ -56,21 +66,113 @@ class SolvaPay:
     ) -> CheckoutSession:
         """Create a hosted checkout session.
 
-        Maps to POST /v1/sdk/checkout-sessions on the SolvaPay API.
+        Maps to POST /v1/sdk/checkout-sessions.
 
         Args:
-            customer_ref: Backend customer reference (from ensure_customer or your DB).
+            customer_ref: Backend customer reference.
             product_ref: SolvaPay product reference (e.g., "prd_0QKI8NHF").
-            plan_ref: Optional plan reference. Omit to show plan selector to customer.
-            return_url: Optional URL to redirect to after checkout.
+            plan_ref: Optional plan reference. Omit to show plan selector.
+            return_url: Optional URL to redirect after checkout.
 
         Returns:
             CheckoutSession with .session_id and .checkout_url.
         """
-        body: dict[str, str] = {"customerRef": customer_ref, "productRef": product_ref}
-        if plan_ref is not None:
-            body["planRef"] = plan_ref
-        if return_url is not None:
-            body["returnUrl"] = return_url
-        data = self._http.request("POST", "/v1/sdk/checkout-sessions", json=body)
+        req = CheckoutSessionRequest(
+            customer_ref=customer_ref,
+            product_ref=product_ref,
+            plan_ref=plan_ref,
+            return_url=return_url,
+        )
+        data = self._http.request(
+            "POST",
+            "/v1/sdk/checkout-sessions",
+            json=req.model_dump(by_alias=True, exclude_none=True),
+        )
         return CheckoutSession.model_validate(data)
+
+    def ensure_customer(
+        self,
+        customer_ref: str,
+        external_ref: str | None = None,
+        *,
+        email: str | None = None,
+        name: str | None = None,
+    ) -> str:
+        """Idempotently create or look up a customer.
+
+        Tries GET /v1/sdk/customers?externalRef=... first. On 404, creates via
+        POST /v1/sdk/customers. Auto-generates a placeholder email if not provided.
+
+        Returns the SolvaPay backend customer reference string.
+        """
+        lookup_ref = external_ref or customer_ref
+        try:
+            existing = self._http.request(
+                "GET", "/v1/sdk/customers", params={"externalRef": lookup_ref}
+            )
+            if existing.get("customerRef"):
+                return str(existing["customerRef"])
+        except SolvaPayAPIError as exc:
+            if exc.status_code != 404:
+                raise
+
+        req = CreateCustomerRequest(
+            email=email or f"{customer_ref}-{int(time.time())}@auto-created.local",
+            external_ref=lookup_ref,
+            name=name,
+        )
+        created = self._http.request(
+            "POST",
+            "/v1/sdk/customers",
+            json=req.model_dump(by_alias=True, exclude_none=True),
+        )
+        return str(created["customerRef"])
+
+    def get_customer(
+        self,
+        customer_ref: str | None = None,
+        *,
+        external_ref: str | None = None,
+        email: str | None = None,
+    ) -> Customer:
+        """Retrieve a customer by ref, external_ref, or email."""
+        if customer_ref:
+            data = self._http.request("GET", f"/v1/sdk/customers/{customer_ref}")
+        elif external_ref:
+            data = self._http.request(
+                "GET", "/v1/sdk/customers", params={"externalRef": external_ref}
+            )
+        elif email:
+            data = self._http.request(
+                "GET", "/v1/sdk/customers", params={"email": email}
+            )
+        else:
+            raise ValueError("Must provide customer_ref, external_ref, or email")
+        return Customer.model_validate(data)
+
+    def check_limits(
+        self,
+        *,
+        customer_ref: str,
+        product_ref: str,
+        plan_ref: str | None = None,
+        meter_name: str | None = None,
+        usage_type: str | None = None,
+    ) -> LimitResponse:
+        """Check whether a customer is within their purchase/usage limits.
+
+        Maps to POST /v1/sdk/limits.
+        """
+        req = CheckLimitsRequest(
+            customer_ref=customer_ref,
+            product_ref=product_ref,
+            plan_ref=plan_ref,
+            meter_name=meter_name,
+            usage_type=usage_type,
+        )
+        data = self._http.request(
+            "POST",
+            "/v1/sdk/limits",
+            json=req.model_dump(by_alias=True, exclude_none=True),
+        )
+        return LimitResponse.model_validate(data)
