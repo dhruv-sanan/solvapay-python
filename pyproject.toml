@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "solvapay"
+version = "0.1.0"
+description = "Community Python SDK for SolvaPay (agent-native payment rails)"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Dhruv Sanan" }]
+requires-python = ">=3.10"
+keywords = ["solvapay", "payments", "agents", "mcp", "fintech"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2.5",
+]
+
+[project.optional-dependencies]
+fastapi = ["fastapi>=0.110"]
+
+[project.urls]
+Homepage = "https://github.com/dhruv-sanan/solvapay-python"
+Issues = "https://github.com/dhruv-sanan/solvapay-python/issues"
+"Official TS SDK" = "https://github.com/solvapay/solvapay-sdk"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "respx>=0.21",
+    "mypy>=1.10",
+    "ruff>=0.5",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/solvapay"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]   # line-length handled by formatter
+
+[tool.mypy]
+strict = true
+python_version = "3.10"
+files = ["src/solvapay"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
