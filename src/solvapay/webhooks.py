@@ -9,9 +9,11 @@ import hashlib
 import hmac
 import json
 import time
-from typing import Any
+from typing import Any, TypeVar
 
 from solvapay.exceptions import SolvaPayError
+
+T = TypeVar("T")
 
 
 def _parse_signature_header(signature: str) -> tuple[int, str]:
@@ -35,7 +37,8 @@ def verify_webhook(
     signature: str,
     secret: str,
     tolerance: int = 300,
-) -> dict[str, Any]:
+    parse_as: type[T] | None = None,
+) -> dict[str, Any] | T:
     """Verify a SolvaPay webhook signature and return the parsed event.
 
     Args:
@@ -44,9 +47,12 @@ def verify_webhook(
         signature: Value of the sv-signature request header.
         secret: Webhook signing secret (starts with whsec_).
         tolerance: Max seconds since signature timestamp. Default 300 (5 min).
+        parse_as: Optional pydantic type to validate the event into. Pass
+                  `WebhookEvent` for a typed discriminated union. Omit for
+                  backwards-compatible dict return.
 
     Returns:
-        Parsed webhook event payload as dict.
+        Parsed webhook event as dict (default) or instance of `parse_as`.
 
     Raises:
         SolvaPayError: Header malformed, timestamp too old, signature mismatch,
@@ -72,4 +78,7 @@ def verify_webhook(
     except json.JSONDecodeError as exc:
         raise SolvaPayError("Webhook body is not valid JSON") from exc
 
-    return event
+    if parse_as is None:
+        return event
+    from pydantic import TypeAdapter
+    return TypeAdapter(parse_as).validate_python(event)

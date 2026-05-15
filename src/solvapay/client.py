@@ -2,17 +2,22 @@
 from __future__ import annotations
 
 import time
+from typing import Any
 
 from solvapay._config import resolve_api_key, resolve_base_url
 from solvapay._http import HttpClient
 from solvapay.exceptions import SolvaPayAPIError
 from solvapay.models import (
+    BalanceResponse,
+    CancelPurchaseRequest,
     CheckLimitsRequest,
     CheckoutSession,
     CheckoutSessionRequest,
     CreateCustomerRequest,
     Customer,
     LimitResponse,
+    TrackUsageRequest,
+    UpdateCustomerRequest,
 )
 
 
@@ -176,3 +181,63 @@ class SolvaPay:
             json=req.model_dump(by_alias=True, exclude_none=True),
         )
         return LimitResponse.model_validate(data)
+
+    def track_usage(
+        self,
+        *,
+        customer_ref: str,
+        product_ref: str,
+        meter_name: str,
+        units: float,
+        idempotency_key: str | None = None,
+    ) -> dict[str, Any]:
+        """Record usage against a meter. Maps to POST /v1/sdk/usages."""
+        req = TrackUsageRequest(
+            customer_ref=customer_ref,
+            product_ref=product_ref,
+            meter_name=meter_name,
+            units=units,
+        )
+        return self._http.request(
+            "POST",
+            "/v1/sdk/usages",
+            json=req.model_dump(by_alias=True, exclude_none=True),
+            idempotency_key=idempotency_key,
+        )
+
+    def update_customer(
+        self,
+        customer_ref: str,
+        *,
+        email: str | None = None,
+        name: str | None = None,
+        external_ref: str | None = None,
+    ) -> Customer:
+        """Update customer fields. Maps to PATCH /v1/sdk/customers/{ref}."""
+        req = UpdateCustomerRequest(email=email, name=name, external_ref=external_ref)
+        data = self._http.request(
+            "PATCH",
+            f"/v1/sdk/customers/{customer_ref}",
+            json=req.model_dump(by_alias=True, exclude_none=True),
+        )
+        return Customer.model_validate(data)
+
+    def get_customer_balance(self, customer_ref: str) -> BalanceResponse:
+        """Get credit balance for a customer. Maps to GET /v1/sdk/customers/{ref}/balance."""
+        data = self._http.request("GET", f"/v1/sdk/customers/{customer_ref}/balance")
+        return BalanceResponse.model_validate(data)
+
+    def cancel_purchase(
+        self, purchase_ref: str, *, reason: str | None = None
+    ) -> dict[str, Any]:
+        """Cancel a purchase. Maps to POST /v1/sdk/purchases/{ref}/cancel."""
+        req = CancelPurchaseRequest(reason=reason)
+        return self._http.request(
+            "POST",
+            f"/v1/sdk/purchases/{purchase_ref}/cancel",
+            json=req.model_dump(by_alias=True, exclude_none=True),
+        )
+
+    def reactivate_purchase(self, purchase_ref: str) -> dict[str, Any]:
+        """Reactivate a cancelled purchase. Maps to POST /v1/sdk/purchases/{ref}/reactivate."""
+        return self._http.request("POST", f"/v1/sdk/purchases/{purchase_ref}/reactivate")

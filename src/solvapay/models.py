@@ -81,3 +81,27 @@ class CheckLimitsRequest(_Base):
     plan_ref: str | None = Field(default=None, serialization_alias="planRef")
     meter_name: str | None = Field(default=None, serialization_alias="meterName")
     usage_type: str | None = Field(default=None, serialization_alias="usageType")
+
+
+class TrackUsageRequest(_Base):
+    customer_ref: str = Field(serialization_alias="customerRef")
+    product_ref: str = Field(serialization_alias="productRef")
+    meter_name: str = Field(serialization_alias="meterName")
+    units: float
+
+
+class UpdateCustomerRequest(_Base):
+    email: str | None = None
+    name: str | None = None
+    external_ref: str | None = Field(default=None, serialization_alias="externalRef")
+
+
+class BalanceResponse(_Base):
+    customer_ref: str = Field(alias="customerRef")
+    balance: float
+    currency: str
+    plan: str | None = None
+
+
+class CancelPurchaseRequest(_Base):
+    reason: str | None = None
