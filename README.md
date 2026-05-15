@@ -2,12 +2,12 @@
 
 Community Python SDK for [SolvaPay](https://solvapay.com) — payment rails for the agentic economy.
 
-> **Status:** v0.3, community-maintained. Pending official adoption.
+> **Status:** v0.4, community-maintained. Pending official adoption.
 > Mirrors the most-used surface of [@solvapay/core](https://github.com/solvapay/solvapay-sdk).
 
 Python is the dominant language for agent frameworks (LangChain, FastMCP, CrewAI, AutoGen). SolvaPay's official SDK is TypeScript-only. This SDK brings first-class Python support so agent developers can gate tools behind paywalls without switching ecosystems.
 
-> 🎬 **New in v0.3:** [FastMCP paywall demo](examples/fastmcp-paywall/) — gate any Python MCP tool behind a per-call paywall in <60 seconds.
+> 🎬 **New in v0.4:** Async client (`AsyncSolvaPay`), lifecycle ops (`track_usage`, `update_customer`, `get_customer_balance`, `cancel_purchase`, `reactivate_purchase`), and typed webhook events (`WebhookEvent` discriminated union).
 
 ## Install
 
@@ -17,27 +17,44 @@ pip install git+https://github.com/dhruv-sanan/solvapay-python
 
 ## Quickstart
 
+**Sync:**
 ```python
-import os
 from solvapay import SolvaPay
 
 sv = SolvaPay()  # reads SOLVAPAY_SECRET_KEY from env
 
-# Ensure customer exists (idempotent)
 customer_ref = sv.ensure_customer("user_42", email="alice@example.com")
-
-# Check usage limits before serving
 limits = sv.check_limits(customer_ref=customer_ref, product_ref="prd_0QKI8NHF")
 if not limits.within_limits:
     print("Upgrade needed:", limits.checkout_url)
 
-# Create a hosted checkout session
 session = sv.create_checkout_session(
     customer_ref=customer_ref,
     product_ref="prd_0QKI8NHF",
     return_url="https://your-app.com/done",
 )
 print(session.checkout_url)
+```
+
+**Async:**
+```python
+import asyncio
+from solvapay import AsyncSolvaPay
+
+async def main() -> None:
+    async with AsyncSolvaPay() as sv:
+        customer_ref = await sv.ensure_customer("user_42", email="alice@example.com")
+        limits = await sv.check_limits(customer_ref=customer_ref, product_ref="prd_0QKI8NHF")
+        if not limits.within_limits:
+            print("Upgrade needed:", limits.checkout_url)
+            return
+        session = await sv.create_checkout_session(
+            customer_ref=customer_ref,
+            product_ref="prd_0QKI8NHF",
+        )
+        print(session.checkout_url)
+
+asyncio.run(main())
 ```
 
 ## Examples
@@ -68,6 +85,8 @@ session = sv.create_checkout_session(
 
 ## Supported methods
 
+**Core:**
+
 | Python | TypeScript equivalent | Description |
 |---|---|---|
 | `create_checkout_session` | `createCheckoutSession` | Hosted checkout URL |
@@ -75,6 +94,18 @@ session = sv.create_checkout_session(
 | `get_customer` | `getCustomer` | Fetch customer by ref / email |
 | `check_limits` | `checkLimits` | Usage / purchase limit check |
 | `verify_webhook` | `verifyWebhook` | HMAC-SHA256 signature verification |
+
+**Lifecycle (new in v0.4):**
+
+| Python | Verb + path | Description |
+|---|---|---|
+| `track_usage` | `POST /v1/sdk/usages` | Record metered usage |
+| `update_customer` | `PATCH /v1/sdk/customers/{ref}` | Update customer email / name |
+| `get_customer_balance` | `GET /v1/sdk/customers/{ref}/balance` | Credit balance |
+| `cancel_purchase` | `POST /v1/sdk/purchases/{ref}/cancel` | Cancel a subscription |
+| `reactivate_purchase` | `POST /v1/sdk/purchases/{ref}/reactivate` | Reactivate cancelled purchase |
+
+All methods available on both `SolvaPay` (sync) and `AsyncSolvaPay` (async).
 
 ## Webhook handler (FastAPI)
 
@@ -98,8 +129,17 @@ async def handle_webhook(request: Request) -> dict:
         )
     except SolvaPayError as exc:
         raise HTTPException(401, str(exc))
+    # Option A: dict (default)
     if event["type"] == "purchase.created":
         ...  # grant access
+
+    # Option B: typed discriminated union (new in v0.4)
+    from solvapay import WebhookEvent, PurchaseCreated
+    from pydantic import TypeAdapter
+    typed = TypeAdapter(WebhookEvent).validate_python(event)
+    if isinstance(typed, PurchaseCreated):
+        ...  # typed access to typed.data, typed.id, etc.
+
     return {"received": True}
 ```
 
@@ -114,18 +154,18 @@ async def handle_webhook(request: Request) -> dict:
 | `SOLVAPAY_API_BASE_URL` | Override API base URL (optional) |
 | `SOLVAPAY_WEBHOOK_SECRET` | Webhook signing secret (required for `verify_webhook`) |
 
-## Non-features (v0.1)
+## Non-features
 
 - **No retries** — add your own retry logic or use `tenacity`
-- **Sync only** — async client planned for v0.2
-- **No pagination** — not needed for v0.1 endpoints
+- **No pagination** — not needed for current endpoints
 
 ## Roadmap
 
 - v0.1 — sync client, hosted checkout, customers, limits, webhooks ✅
 - v0.2 — `@paywall.require` decorator, FastAPI webhook router ✅
 - v0.3 — FastMCP paywall demo (`examples/fastmcp-paywall/`) ✅
-- v0.4 — async client, typed webhook events, LangChain tool
+- v0.4 — async client (`AsyncSolvaPay`), lifecycle ops, typed webhook events ✅
+- v0.5 — paywall state classifier, LangChain `monetize_tool` decorator
 
 ## Contributing
 
