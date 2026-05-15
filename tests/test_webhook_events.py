@@ -1,4 +1,5 @@
 """Tests for typed webhook event discriminated union."""
+
 from __future__ import annotations
 
 import hashlib

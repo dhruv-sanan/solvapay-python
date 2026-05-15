@@ -1,4 +1,5 @@
 """Tests for AsyncSolvaPay and paywall.require_async."""
+
 from __future__ import annotations
 
 import httpx
@@ -29,7 +30,10 @@ async def test_async_create_checkout_session_sends_correct_request(
         )
     )
     session = await async_client.create_checkout_session(
-        customer_ref="cus_1", product_ref="prd_A", plan_ref="plan_B", return_url="https://ret.example"
+        customer_ref="cus_1",
+        product_ref="prd_A",
+        plan_ref="plan_B",
+        return_url="https://ret.example",
     )
     assert route.called
     assert session.session_id == "sess_abc"
@@ -48,6 +52,7 @@ async def test_async_create_checkout_session_omits_optional_fields(
     await async_client.create_checkout_session(customer_ref="cus_1", product_ref="prd_A")
     sent = route.calls[0].request
     import json
+
     body = json.loads(sent.content)
     assert "planRef" not in body
     assert "returnUrl" not in body
@@ -87,9 +92,7 @@ async def test_async_ensure_customer_creates_on_404(async_client: AsyncSolvaPay)
 @respx.mock
 async def test_async_get_customer_by_ref(async_client: AsyncSolvaPay) -> None:
     respx.get("https://api.solvapay.test/v1/sdk/customers/cus_123").mock(
-        return_value=httpx.Response(
-            200, json={"customerRef": "cus_123", "email": "a@b.com"}
-        )
+        return_value=httpx.Response(200, json={"customerRef": "cus_123", "email": "a@b.com"})
     )
     customer = await async_client.get_customer("cus_123")
     assert customer.customer_ref == "cus_123"
@@ -98,9 +101,7 @@ async def test_async_get_customer_by_ref(async_client: AsyncSolvaPay) -> None:
 @respx.mock
 async def test_async_get_customer_by_external_ref(async_client: AsyncSolvaPay) -> None:
     respx.get("https://api.solvapay.test/v1/sdk/customers").mock(
-        return_value=httpx.Response(
-            200, json={"customerRef": "cus_456", "email": "b@b.com"}
-        )
+        return_value=httpx.Response(200, json={"customerRef": "cus_456", "email": "b@b.com"})
     )
     customer = await async_client.get_customer(external_ref="ext_456")
     assert customer.customer_ref == "cus_456"
@@ -125,7 +126,8 @@ async def test_async_check_limits_within(async_client: AsyncSolvaPay) -> None:
 async def test_async_check_limits_exceeded(async_client: AsyncSolvaPay) -> None:
     respx.post("https://api.solvapay.test/v1/sdk/limits").mock(
         return_value=httpx.Response(
-            200, json={"withinLimits": False, "remaining": 0, "checkoutUrl": "https://checkout.example"}
+            200,
+            json={"withinLimits": False, "remaining": 0, "checkoutUrl": "https://checkout.example"},
         )
     )
     limits = await async_client.check_limits(customer_ref="cus_1", product_ref="prd_A")
@@ -157,7 +159,8 @@ async def test_require_async_passes_through_within_limits() -> None:
 async def test_require_async_raises_paywall_required_when_exceeded() -> None:
     respx.post("https://api.solvapay.test/v1/sdk/limits").mock(
         return_value=httpx.Response(
-            200, json={"withinLimits": False, "remaining": 0, "checkoutUrl": "https://checkout.example"}
+            200,
+            json={"withinLimits": False, "remaining": 0, "checkoutUrl": "https://checkout.example"},
         )
     )
     sv = AsyncSolvaPay(api_key="sk_test_dummy", base_url="https://api.solvapay.test")

@@ -1,4 +1,5 @@
 """Tests for HttpClient.send() and _RequestSpec."""
+
 from __future__ import annotations
 
 import httpx

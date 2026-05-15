@@ -42,6 +42,7 @@ dev = [
     "respx>=0.21",
     "mypy>=1.10",
     "ruff>=0.5",
+    "pytest-cov>=7.1.0",
 ]
 
 [tool.hatch.build.targets.wheel]

@@ -1,4 +1,5 @@
 """Optional FastAPI integration. Requires `pip install solvapay[fastapi]`."""
+
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
@@ -7,9 +8,7 @@ from typing import Any
 try:
     from fastapi import APIRouter, HTTPException, Request
 except ImportError as exc:
-    raise ImportError(
-        "FastAPI is not installed. Run: pip install solvapay[fastapi]"
-    ) from exc
+    raise ImportError("FastAPI is not installed. Run: pip install solvapay[fastapi]") from exc
 
 from solvapay.exceptions import SolvaPayError
 from solvapay.webhooks import verify_webhook

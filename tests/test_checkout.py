@@ -1,4 +1,5 @@
 """Tests for SolvaPay.create_checkout_session."""
+
 from __future__ import annotations
 
 import json

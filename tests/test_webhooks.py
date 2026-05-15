@@ -1,4 +1,5 @@
 """Tests for webhook signature verification."""
+
 from __future__ import annotations
 
 import hashlib
@@ -21,15 +22,17 @@ def _sign(body: str, ts: int | None = None, secret: str = SECRET) -> tuple[str, 
 
 
 def test_valid_signature_roundtrip() -> None:
-    body = json.dumps({
-        "id": "evt_1",
-        "type": "purchase.created",
-        "created": 1,
-        "api_version": "2025-10-01",
-        "data": {"object": {"id": "pur_1"}, "previous_attributes": None},
-        "livemode": False,
-        "request": {"id": None, "idempotency_key": None},
-    })
+    body = json.dumps(
+        {
+            "id": "evt_1",
+            "type": "purchase.created",
+            "created": 1,
+            "api_version": "2025-10-01",
+            "data": {"object": {"id": "pur_1"}, "previous_attributes": None},
+            "livemode": False,
+            "request": {"id": None, "idempotency_key": None},
+        }
+    )
     sig, _ = _sign(body)
     event = verify_webhook(body=body, signature=sig, secret=SECRET)
     assert event["type"] == "purchase.created"
@@ -62,3 +65,28 @@ def test_malformed_header_rejected() -> None:
     body = '{"type": "purchase.created"}'
     with pytest.raises(SolvaPayError, match="malformed"):
         verify_webhook(body=body, signature="t=123", secret=SECRET)
+
+
+def test_non_integer_timestamp_rejected() -> None:
+    body = '{"type": "purchase.created"}'
+    with pytest.raises(SolvaPayError, match="not an integer"):
+        verify_webhook(body=body, signature="t=notanint,v1=abc123", secret=SECRET)
+
+
+def test_invalid_json_body_rejected() -> None:
+    body = "this is not json"
+    ts = int(time.time())
+    h = hmac.new(SECRET.encode(), f"{ts}.{body}".encode(), hashlib.sha256).hexdigest()
+    sig = f"t={ts},v1={h}"
+    with pytest.raises(SolvaPayError, match="not valid JSON"):
+        verify_webhook(body=body, signature=sig, secret=SECRET)
+
+
+def test_header_chunk_without_equals_still_parses() -> None:
+    body = '{"type": "purchase.created"}'
+    ts = int(time.time())
+    h = hmac.new(SECRET.encode(), f"{ts}.{body}".encode(), hashlib.sha256).hexdigest()
+    # Extra chunk "foobar" (no =) — should be ignored, not crash
+    sig = f"t={ts},foobar,v1={h}"
+    event = verify_webhook(body=body, signature=sig, secret=SECRET)
+    assert event["type"] == "purchase.created"

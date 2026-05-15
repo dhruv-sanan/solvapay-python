@@ -3,6 +3,7 @@
 Mirrors @solvapay/server verifyWebhook. HMAC-SHA256 over "{timestamp}.{body}"
 with header format "t={ts},v1={hmac}". 5-minute tolerance. Constant-time compare.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -81,4 +82,5 @@ def verify_webhook(
     if parse_as is None:
         return event
     from pydantic import TypeAdapter
+
     return TypeAdapter(parse_as).validate_python(event)

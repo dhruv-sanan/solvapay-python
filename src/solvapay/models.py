@@ -4,6 +4,7 @@ Python fields are snake_case. API wire format is camelCase.
 Field(alias="camelCase") handles the mapping; populate_by_name=True
 lets callers use either form during construction.
 """
+
 from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field

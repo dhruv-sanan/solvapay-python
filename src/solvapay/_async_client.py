@@ -3,6 +3,7 @@
 Constructor signature identical to `SolvaPay`. All ops are `async def`.
 Use `async with AsyncSolvaPay() as sv: ...` for proper teardown.
 """
+
 from __future__ import annotations
 
 import time
@@ -78,8 +79,11 @@ class AsyncSolvaPay:
             return_url=return_url,
         )
         data = await self._http.send(
-            _RequestSpec("POST", "/v1/sdk/checkout-sessions",
-                         json=req.model_dump(by_alias=True, exclude_none=True))
+            _RequestSpec(
+                "POST",
+                "/v1/sdk/checkout-sessions",
+                json=req.model_dump(by_alias=True, exclude_none=True),
+            )
         )
         return CheckoutSession.model_validate(data)
 
@@ -108,8 +112,9 @@ class AsyncSolvaPay:
             name=name,
         )
         created = await self._http.send(
-            _RequestSpec("POST", "/v1/sdk/customers",
-                         json=req.model_dump(by_alias=True, exclude_none=True))
+            _RequestSpec(
+                "POST", "/v1/sdk/customers", json=req.model_dump(by_alias=True, exclude_none=True)
+            )
         )
         return str(created["customerRef"])
 
@@ -121,9 +126,7 @@ class AsyncSolvaPay:
         email: str | None = None,
     ) -> Customer:
         if customer_ref:
-            data = await self._http.send(
-                _RequestSpec("GET", f"/v1/sdk/customers/{customer_ref}")
-            )
+            data = await self._http.send(_RequestSpec("GET", f"/v1/sdk/customers/{customer_ref}"))
         elif external_ref:
             data = await self._http.send(
                 _RequestSpec("GET", "/v1/sdk/customers", params={"externalRef": external_ref})
@@ -153,8 +156,9 @@ class AsyncSolvaPay:
             usage_type=usage_type,
         )
         data = await self._http.send(
-            _RequestSpec("POST", "/v1/sdk/limits",
-                         json=req.model_dump(by_alias=True, exclude_none=True))
+            _RequestSpec(
+                "POST", "/v1/sdk/limits", json=req.model_dump(by_alias=True, exclude_none=True)
+            )
         )
         return LimitResponse.model_validate(data)
 
@@ -175,9 +179,12 @@ class AsyncSolvaPay:
             units=units,
         )
         return await self._http.send(
-            _RequestSpec("POST", "/v1/sdk/usages",
-                         json=req.model_dump(by_alias=True, exclude_none=True),
-                         idempotency_key=idempotency_key)
+            _RequestSpec(
+                "POST",
+                "/v1/sdk/usages",
+                json=req.model_dump(by_alias=True, exclude_none=True),
+                idempotency_key=idempotency_key,
+            )
         )
 
     async def update_customer(
@@ -191,8 +198,11 @@ class AsyncSolvaPay:
         """Update customer fields. Maps to PATCH /v1/sdk/customers/{ref}."""
         req = UpdateCustomerRequest(email=email, name=name, external_ref=external_ref)
         data = await self._http.send(
-            _RequestSpec("PATCH", f"/v1/sdk/customers/{customer_ref}",
-                         json=req.model_dump(by_alias=True, exclude_none=True))
+            _RequestSpec(
+                "PATCH",
+                f"/v1/sdk/customers/{customer_ref}",
+                json=req.model_dump(by_alias=True, exclude_none=True),
+            )
         )
         return Customer.model_validate(data)
 
@@ -209,8 +219,11 @@ class AsyncSolvaPay:
         """Cancel a purchase. Maps to POST /v1/sdk/purchases/{ref}/cancel."""
         req = CancelPurchaseRequest(reason=reason)
         return await self._http.send(
-            _RequestSpec("POST", f"/v1/sdk/purchases/{purchase_ref}/cancel",
-                         json=req.model_dump(by_alias=True, exclude_none=True))
+            _RequestSpec(
+                "POST",
+                f"/v1/sdk/purchases/{purchase_ref}/cancel",
+                json=req.model_dump(by_alias=True, exclude_none=True),
+            )
         )
 
     async def reactivate_purchase(self, purchase_ref: str) -> dict[str, Any]:

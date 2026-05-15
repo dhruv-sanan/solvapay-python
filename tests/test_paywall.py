@@ -1,4 +1,5 @@
 """Tests for @paywall.require decorator."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock

@@ -2,6 +2,7 @@
 
 Mirrors the @solvapay/server `payable` philosophy in a single decorator.
 """
+
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable

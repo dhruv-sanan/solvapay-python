@@ -1,4 +1,5 @@
 """Public SolvaPay client. Synchronous; mirrors @solvapay/core surface."""
+
 from __future__ import annotations
 
 import time
@@ -148,9 +149,7 @@ class SolvaPay:
                 "GET", "/v1/sdk/customers", params={"externalRef": external_ref}
             )
         elif email:
-            data = self._http.request(
-                "GET", "/v1/sdk/customers", params={"email": email}
-            )
+            data = self._http.request("GET", "/v1/sdk/customers", params={"email": email})
         else:
             raise ValueError("Must provide customer_ref, external_ref, or email")
         return Customer.model_validate(data)
@@ -227,9 +226,7 @@ class SolvaPay:
         data = self._http.request("GET", f"/v1/sdk/customers/{customer_ref}/balance")
         return BalanceResponse.model_validate(data)
 
-    def cancel_purchase(
-        self, purchase_ref: str, *, reason: str | None = None
-    ) -> dict[str, Any]:
+    def cancel_purchase(self, purchase_ref: str, *, reason: str | None = None) -> dict[str, Any]:
         """Cancel a purchase. Maps to POST /v1/sdk/purchases/{ref}/cancel."""
         req = CancelPurchaseRequest(reason=reason)
         return self._http.request(

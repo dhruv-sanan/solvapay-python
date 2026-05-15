@@ -1,5 +1,6 @@
 """Tests for lifecycle ops: track_usage, update_customer, get_customer_balance,
 cancel_purchase, reactivate_purchase — sync and async."""
+
 from __future__ import annotations
 
 import httpx
@@ -36,6 +37,7 @@ def test_track_usage_sends_correct_body(client: SolvaPay) -> None:
     )
     assert route.called
     import json
+
     body = json.loads(route.calls[0].request.content)
     assert body == {
         "customerRef": "cus_1",
@@ -66,9 +68,7 @@ async def test_async_track_usage_sends_correct_body(async_client: AsyncSolvaPay)
 @respx.mock
 def test_update_customer_sends_patch(client: SolvaPay) -> None:
     route = respx.patch(f"{BASE}/v1/sdk/customers/cus_1").mock(
-        return_value=httpx.Response(
-            200, json={"customerRef": "cus_1", "email": "new@example.com"}
-        )
+        return_value=httpx.Response(200, json={"customerRef": "cus_1", "email": "new@example.com"})
     )
     customer = client.update_customer("cus_1", email="new@example.com")
     assert route.called
@@ -79,9 +79,7 @@ def test_update_customer_sends_patch(client: SolvaPay) -> None:
 @respx.mock
 async def test_async_update_customer_sends_patch(async_client: AsyncSolvaPay) -> None:
     route = respx.patch(f"{BASE}/v1/sdk/customers/cus_1").mock(
-        return_value=httpx.Response(
-            200, json={"customerRef": "cus_1", "name": "Alice"}
-        )
+        return_value=httpx.Response(200, json={"customerRef": "cus_1", "name": "Alice"})
     )
     customer = await async_client.update_customer("cus_1", name="Alice")
     assert route.called
@@ -131,6 +129,7 @@ def test_cancel_purchase_posts_with_reason(client: SolvaPay) -> None:
     result = client.cancel_purchase("pur_1", reason="user request")
     assert route.called
     import json
+
     body = json.loads(route.calls[0].request.content)
     assert body.get("reason") == "user request"
     assert result == {"cancelled": True}

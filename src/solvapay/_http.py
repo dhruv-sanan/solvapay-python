@@ -1,4 +1,5 @@
 """Internal HTTP transport. Not part of public API."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -51,10 +52,15 @@ class HttpClient:
         self.close()
 
     def send(self, spec: _RequestSpec) -> dict[str, Any]:
-        return _handle(self._client.request(
-            spec.method, spec.path,
-            json=spec.json, params=spec.params, headers=spec.headers(),
-        ))
+        return _handle(
+            self._client.request(
+                spec.method,
+                spec.path,
+                json=spec.json,
+                params=spec.params,
+                headers=spec.headers(),
+            )
+        )
 
     def request(
         self,
@@ -90,7 +96,12 @@ class AsyncHttpClient:
         await self.aclose()
 
     async def send(self, spec: _RequestSpec) -> dict[str, Any]:
-        return _handle(await self._client.request(
-            spec.method, spec.path,
-            json=spec.json, params=spec.params, headers=spec.headers(),
-        ))
+        return _handle(
+            await self._client.request(
+                spec.method,
+                spec.path,
+                json=spec.json,
+                params=spec.params,
+                headers=spec.headers(),
+            )
+        )

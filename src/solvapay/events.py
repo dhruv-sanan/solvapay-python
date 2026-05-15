@@ -3,6 +3,7 @@
 Mirrors the 13 event types in @solvapay/server src/types/webhook.ts.
 Use as a discriminated union with `verify_webhook(..., parse_as=WebhookEvent)`.
 """
+
 from __future__ import annotations
 
 from typing import Annotated, Any, Literal
@@ -72,6 +73,18 @@ class CheckoutSessionCreated(_Event):
 
 
 WebhookEvent = Annotated[
-    PaymentSucceeded | PaymentFailed | PaymentRefunded | PaymentRefundFailed | PurchaseCreated | PurchaseUpdated | PurchaseCancelled | PurchaseExpired | PurchaseSuspended | CustomerCreated | CustomerUpdated | CustomerDeleted | CheckoutSessionCreated,
+    PaymentSucceeded
+    | PaymentFailed
+    | PaymentRefunded
+    | PaymentRefundFailed
+    | PurchaseCreated
+    | PurchaseUpdated
+    | PurchaseCancelled
+    | PurchaseExpired
+    | PurchaseSuspended
+    | CustomerCreated
+    | CustomerUpdated
+    | CustomerDeleted
+    | CheckoutSessionCreated,
     Field(discriminator="type"),
 ]
