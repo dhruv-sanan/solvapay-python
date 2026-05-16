@@ -1207,28 +1207,10 @@ wheels = [
 [[package]]
 name = "solvapay"
 version = "0.3.0"
-source = { directory = "/Users/dhruvsanan/Desktop/open-source/solvapay-python" }
+source = { git = "https://github.com/dhruv-sanan/solvapay-python?rev=v0.3.0#e5b8c8f6740f8d0c61e95b8613f9b6aadc796bb9" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi", marker = "extra == 'fastapi'", specifier = ">=0.110" },
-    { name = "httpx", specifier = ">=0.27" },
-    { name = "pydantic", specifier = ">=2.5" },
-]
-provides-extras = ["fastapi"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "fastapi", specifier = ">=0.110" },
-    { name = "mypy", specifier = ">=1.10" },
-    { name = "pytest", specifier = ">=8" },
-    { name = "pytest-asyncio", specifier = ">=0.23" },
-    { name = "respx", specifier = ">=0.21" },
-    { name = "ruff", specifier = ">=0.5" },
 ]
 
 [[package]]
@@ -1247,7 +1229,7 @@ requires-dist = [
     { name = "fastmcp", specifier = ">=0.4" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "python-dotenv", specifier = ">=1.0" },
-    { name = "solvapay", directory = "/Users/dhruvsanan/Desktop/open-source/solvapay-python" },
+    { name = "solvapay", git = "https://github.com/dhruv-sanan/solvapay-python?rev=v0.3.0" },
 ]
 
 [[package]]
