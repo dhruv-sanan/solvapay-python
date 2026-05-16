@@ -1,0 +1,13 @@
+[project]
+name = "langchain-paywall-example"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "solvapay[langchain] @ git+https://github.com/dhruv-sanan/solvapay-python@v0.5.0",
+    "langchain>=0.3",
+    "langchain-openai>=0.2",
+    "python-dotenv>=1.0",
+]
+
+[tool.uv.sources]
+solvapay = { path = "../..", editable = true }
