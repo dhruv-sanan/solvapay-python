@@ -1,5 +1,7 @@
 """Exception hierarchy for SolvaPay SDK."""
 
+from __future__ import annotations
+
 
 class SolvaPayError(Exception):
     """Base exception for all SolvaPay SDK errors."""

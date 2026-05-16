@@ -1,5 +1,7 @@
 """SolvaPay community Python SDK."""
 
+from __future__ import annotations
+
 from solvapay import paywall
 from solvapay._async_client import AsyncSolvaPay
 from solvapay.client import SolvaPay
