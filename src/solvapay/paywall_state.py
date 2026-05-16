@@ -97,7 +97,9 @@ def build_nudge_message(state: PaywallState, limits: LimitResponse) -> str:
     url = limits.checkout_url or None
     visit_clause = f", or visit {url}" if url else ""
     if state == PaywallState.TOPUP_REQUIRED:
-        return f"Heads up — running low on credits. Call the `topup` tool to add more{visit_clause}."
+        return (
+            f"Heads up — running low on credits. Call the `topup` tool to add more{visit_clause}."
+        )
     if state == PaywallState.UPGRADE_REQUIRED:
         return (
             f"Heads up — approaching your plan's limit this period. "

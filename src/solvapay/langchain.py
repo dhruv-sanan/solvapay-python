@@ -8,9 +8,7 @@ from typing import Any
 try:
     from langchain_core.tools import BaseTool
 except ImportError as exc:
-    raise ImportError(
-        "LangChain is not installed. Run: pip install solvapay[langchain]"
-    ) from exc
+    raise ImportError("LangChain is not installed. Run: pip install solvapay[langchain]") from exc
 
 from solvapay.client import SolvaPay
 from solvapay.paywall_state import decide

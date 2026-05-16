@@ -2,12 +2,13 @@
 
 Community Python SDK for [SolvaPay](https://solvapay.com) — payment rails for the agentic economy.
 
-> **Status:** v0.4, community-maintained. Pending official adoption.
+> **Status:** v0.5, community-maintained. Pending official adoption.
 > Mirrors the most-used surface of [@solvapay/core](https://github.com/solvapay/solvapay-sdk).
 
 Python is the dominant language for agent frameworks (LangChain, FastMCP, CrewAI, AutoGen). SolvaPay's official SDK is TypeScript-only. This SDK brings first-class Python support so agent developers can gate tools behind paywalls without switching ecosystems.
 
-> 🎬 **New in v0.4:** Async client (`AsyncSolvaPay`), lifecycle ops (`track_usage`, `update_customer`, `get_customer_balance`, `cancel_purchase`, `reactivate_purchase`), and typed webhook events (`WebhookEvent` discriminated union).
+> 🎬 **New in v0.5:** Paywall state classifier (`paywall_state` module) and LangChain `monetize_tool` decorator — gate any LangChain tool behind a SolvaPay paywall with one line.
+> **v0.4:** Async client (`AsyncSolvaPay`), lifecycle ops, typed webhook events.
 
 ## Install
 
@@ -57,11 +58,67 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
+## Ecosystem integrations
+
+### LangChain
+
+Gate any LangChain tool with `monetize_tool`:
+
+```python
+from solvapay.langchain import monetize_tool
+from langchain_core.tools import Tool
+
+raw = Tool.from_function(name="search", func=do_search, description="Search the web.")
+paid = monetize_tool(raw, product="prd_0QKI8NHF")
+```
+
+When the customer is over-limit the tool returns a structured dict with `checkout_url` — the agent surfaces it to the user instead of raising an exception.
+
+```bash
+pip install solvapay[langchain]
+```
+
+See [`examples/langchain-paywall/`](examples/langchain-paywall/) for a full agent example.
+
+### FastMCP
+
+See [`examples/fastmcp-paywall/`](examples/fastmcp-paywall/) for a FastMCP server with two paywalled tools, ready to plug into Claude Desktop.
+
+### FastAPI
+
+Use `webhook_router` to mount a verified webhook endpoint:
+
+```python
+from solvapay.fastapi import webhook_router
+app.include_router(webhook_router(secret=os.environ["SOLVAPAY_WEBHOOK_SECRET"], on_event=handle))
+```
+
+```bash
+pip install solvapay[fastapi]
+```
+
+## Paywall state classifier
+
+`solvapay.paywall_state` maps a `LimitResponse` to a structured recovery action:
+
+```python
+from solvapay.paywall_state import decide
+
+limits = sv.check_limits(customer_ref="cus_123", product_ref="prd_xyz")
+if not limits.within_limits:
+    d = decide(limits)
+    print(d.state)        # PaywallState.UPGRADE_REQUIRED
+    print(d.message)      # "You don't have an active plan..."
+    print(d.recovery_tool)  # "upgrade"
+    print(d.checkout_url)   # "https://solvapay.com/c/..."
+```
+
 ## Examples
 
 | Path | What it shows |
 |---|---|
-| [`examples/fastmcp-paywall/`](examples/fastmcp-paywall/) | A FastMCP server with two paywalled tools, ready to plug into Claude Desktop. Demo for `@paywall.require` + MCP. |
+| [`examples/fastmcp-paywall/`](examples/fastmcp-paywall/) | FastMCP server with two paywalled tools. Demo for `@paywall.require` + MCP. |
+| [`examples/langchain-paywall/`](examples/langchain-paywall/) | LangChain agent with `monetize_tool`. Shows paywall response in agent trace. |
 
 ## TS ↔ Python parity
 
@@ -165,7 +222,7 @@ async def handle_webhook(request: Request) -> dict:
 - v0.2 — `@paywall.require` decorator, FastAPI webhook router ✅
 - v0.3 — FastMCP paywall demo (`examples/fastmcp-paywall/`) ✅
 - v0.4 — async client (`AsyncSolvaPay`), lifecycle ops, typed webhook events ✅
-- v0.5 — paywall state classifier, LangChain `monetize_tool` decorator
+- v0.5 — paywall state classifier, LangChain `monetize_tool` decorator ✅
 
 ## Contributing
 

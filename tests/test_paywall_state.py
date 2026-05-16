@@ -6,9 +6,9 @@ from solvapay.models import LimitResponse
 from solvapay.paywall_state import (
     GateDecision,
     PaywallState,
+    build_gate_message,
     classify_state,
     decide,
-    build_gate_message,
 )
 
 
