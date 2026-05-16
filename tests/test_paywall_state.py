@@ -7,6 +7,7 @@ from solvapay.paywall_state import (
     GateDecision,
     PaywallState,
     build_gate_message,
+    build_nudge_message,
     classify_state,
     decide,
 )
@@ -101,3 +102,58 @@ def test_decide_ok_no_recovery_tool() -> None:
     assert d.state == PaywallState.OK
     assert d.recovery_tool is None
     assert d.message == ""
+
+
+# ---------------------------------------------------------------------------
+# build_nudge_message — one test per branch
+# ---------------------------------------------------------------------------
+
+
+def test_nudge_ok_returns_empty() -> None:
+    limits = _limit(within_limits=True, plan="pln_basic")
+    assert build_nudge_message(PaywallState.OK, limits) == ""
+
+
+def test_nudge_topup_required() -> None:
+    limits = _limit(within_limits=False, plan="pln_usage", credit_balance=0.0)
+    msg = build_nudge_message(PaywallState.TOPUP_REQUIRED, limits)
+    assert "topup" in msg
+    assert "Heads up" in msg
+
+
+def test_nudge_upgrade_required() -> None:
+    limits = _limit(within_limits=False, plan="pln_basic")
+    msg = build_nudge_message(PaywallState.UPGRADE_REQUIRED, limits)
+    assert "upgrade" in msg
+    assert "Heads up" in msg
+
+
+def test_nudge_activation_required() -> None:
+    limits = _limit(within_limits=False, plan=None)
+    msg = build_nudge_message(PaywallState.ACTIVATION_REQUIRED, limits)
+    assert "activate_plan" in msg
+    assert "Heads up" in msg
+
+
+def test_nudge_reactivation_required() -> None:
+    limits = _limit(within_limits=False, plan="pln_old")
+    msg = build_nudge_message(PaywallState.REACTIVATION_REQUIRED, limits)
+    assert "manage_account" in msg
+    assert "Heads up" in msg
+
+
+def test_nudge_includes_url_when_present() -> None:
+    limits = _limit(
+        within_limits=False,
+        plan="pln_usage",
+        credit_balance=0.0,
+        checkout_url="https://solvapay.com/c/topup",
+    )
+    msg = build_nudge_message(PaywallState.TOPUP_REQUIRED, limits)
+    assert "https://solvapay.com/c/topup" in msg
+
+
+def test_nudge_no_url_clause_when_absent() -> None:
+    limits = _limit(within_limits=False, plan="pln_basic")
+    msg = build_nudge_message(PaywallState.UPGRADE_REQUIRED, limits)
+    assert "or visit" not in msg
