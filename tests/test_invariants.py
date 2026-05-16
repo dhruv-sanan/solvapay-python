@@ -15,6 +15,7 @@ from solvapay.models import (
     CheckLimitsRequest,
     CheckoutSessionRequest,
     CreateCustomerRequest,
+    CreateProductRequest,
     TrackUsageRequest,
     UpdateCustomerRequest,
 )
@@ -126,6 +127,35 @@ async def test_require_async_on_sync_function_raises_type_error() -> None:
 
     with pytest.raises((TypeError, AttributeError)):
         await sync_fn(customer_ref="cus_1")  # type: ignore[misc]
+
+
+def test_admin_sync_async_parity() -> None:
+    """All 11 admin ops must exist on both SolvaPay and AsyncSolvaPay."""
+    admin_ops = [
+        "list_products",
+        "get_product",
+        "create_product",
+        "delete_product",
+        "clone_product",
+        "list_plans",
+        "create_plan",
+        "update_plan",
+        "delete_plan",
+        "get_merchant",
+        "get_platform_config",
+    ]
+    for op in admin_ops:
+        assert hasattr(SolvaPay, op), f"SolvaPay missing admin op: {op}"
+        assert hasattr(AsyncSolvaPay, op), f"AsyncSolvaPay missing admin op: {op}"
+
+
+def test_product_camelcase_wire_format() -> None:
+    """CreateProductRequest must serialize defaultCurrency, not default_currency."""
+    req = CreateProductRequest(name="Pro", type="recurring", default_currency="USD")
+    data = req.model_dump(by_alias=True, exclude_none=True)
+    assert "defaultCurrency" in data, "defaultCurrency must be in serialized output"
+    assert "default_currency" not in data, "snake_case must not appear in wire format"
+    assert data["defaultCurrency"] == "USD"
 
 
 def test_paywall_required_carries_checkout_url() -> None:

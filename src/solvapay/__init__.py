@@ -20,7 +20,7 @@ from solvapay.events import (
     WebhookEvent,
 )
 from solvapay.exceptions import SolvaPayAPIError, SolvaPayError
-from solvapay.models import BalanceResponse
+from solvapay.models import BalanceResponse, Merchant, Plan, PlatformConfig, Product
 from solvapay.paywall import PaywallRequired
 from solvapay.webhooks import verify_webhook
 
@@ -31,11 +31,15 @@ __all__ = [
     "CustomerCreated",
     "CustomerDeleted",
     "CustomerUpdated",
+    "Merchant",
     "PaymentFailed",
     "PaymentRefundFailed",
     "PaymentRefunded",
     "PaymentSucceeded",
     "PaywallRequired",
+    "Plan",
+    "PlatformConfig",
+    "Product",
     "PurchaseCancelled",
     "PurchaseCreated",
     "PurchaseExpired",
@@ -48,4 +52,4 @@ __all__ = [
     "paywall",
     "verify_webhook",
 ]
-__version__ = "0.5.0"
+__version__ = "0.6.0"

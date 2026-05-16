@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "solvapay"
-version = "0.5.0"
+name = "solvapay-python"
+version = "0.6.0"
 description = "Community Python SDK for SolvaPay (agent-native payment rails)"
 readme = "README.md"
 license = { text = "MIT" }

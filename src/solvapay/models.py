@@ -106,3 +106,77 @@ class BalanceResponse(_Base):
 
 class CancelPurchaseRequest(_Base):
     reason: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Admin response models
+# ---------------------------------------------------------------------------
+
+
+class Product(_Base):
+    """A SolvaPay product."""
+
+    reference: str
+    name: str
+    type: str
+    status: str | None = None
+    default_currency: str | None = Field(default=None, alias="defaultCurrency")
+    created_at: str | None = Field(default=None, alias="createdAt")
+
+
+class Plan(_Base):
+    """A SolvaPay plan attached to a product."""
+
+    reference: str
+    name: str
+    type: str
+    price: float | None = None
+    currency: str | None = None
+    interval: str | None = None
+    status: str | None = None
+    product_ref: str | None = Field(default=None, alias="productRef")
+
+
+class Merchant(_Base):
+    """Merchant account details."""
+
+    merchant_ref: str | None = Field(default=None, alias="merchantRef")
+    name: str | None = None
+    email: str | None = None
+
+
+class PlatformConfig(_Base):
+    """Platform-level configuration."""
+
+    currency: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Admin request models
+# ---------------------------------------------------------------------------
+
+
+class CreateProductRequest(_Base):
+    name: str
+    type: str
+    default_currency: str = Field(serialization_alias="defaultCurrency")
+
+
+class CreatePlanRequest(_Base):
+    name: str
+    type: str
+    price: float | None = None
+    currency: str | None = None
+    interval: str | None = None
+
+
+class UpdatePlanRequest(_Base):
+    name: str | None = None
+    type: str | None = None
+    price: float | None = None
+    currency: str | None = None
+    interval: str | None = None
+
+
+class CloneProductRequest(_Base):
+    new_name: str = Field(serialization_alias="newName")

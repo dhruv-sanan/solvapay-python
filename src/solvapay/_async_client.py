@@ -18,11 +18,19 @@ from solvapay.models import (
     CheckLimitsRequest,
     CheckoutSession,
     CheckoutSessionRequest,
+    CloneProductRequest,
     CreateCustomerRequest,
+    CreatePlanRequest,
+    CreateProductRequest,
     Customer,
     LimitResponse,
+    Merchant,
+    Plan,
+    PlatformConfig,
+    Product,
     TrackUsageRequest,
     UpdateCustomerRequest,
+    UpdatePlanRequest,
 )
 
 
@@ -231,3 +239,117 @@ class AsyncSolvaPay:
         return await self._http.send(
             _RequestSpec("POST", f"/v1/sdk/purchases/{purchase_ref}/reactivate")
         )
+
+    # --- Admin: Products ---
+
+    async def list_products(self) -> list[Product]:
+        """List all products. Maps to GET /v1/sdk/products."""
+        data = await self._http.send(_RequestSpec("GET", "/v1/sdk/products"))
+        items: list[Any] = data if isinstance(data, list) else data.get("products", [])
+        return [Product.model_validate(p) for p in items]
+
+    async def get_product(self, product_ref: str) -> Product:
+        """Get a product by ref. Maps to GET /v1/sdk/products/{ref}."""
+        data = await self._http.send(_RequestSpec("GET", f"/v1/sdk/products/{product_ref}"))
+        return Product.model_validate(data)
+
+    async def create_product(self, *, name: str, type: str, default_currency: str) -> Product:
+        """Create a product. Maps to POST /v1/sdk/products."""
+        req = CreateProductRequest(name=name, type=type, default_currency=default_currency)
+        data = await self._http.send(
+            _RequestSpec(
+                "POST",
+                "/v1/sdk/products",
+                json=req.model_dump(by_alias=True, exclude_none=True),
+            )
+        )
+        return Product.model_validate(data)
+
+    async def delete_product(self, product_ref: str) -> dict[str, Any]:
+        """Delete a product. Maps to DELETE /v1/sdk/products/{ref}."""
+        return await self._http.send(_RequestSpec("DELETE", f"/v1/sdk/products/{product_ref}"))
+
+    async def clone_product(self, product_ref: str, *, new_name: str) -> Product:
+        """Clone a product with a new name. Maps to POST /v1/sdk/products/{ref}/clone."""
+        req = CloneProductRequest(new_name=new_name)
+        data = await self._http.send(
+            _RequestSpec(
+                "POST",
+                f"/v1/sdk/products/{product_ref}/clone",
+                json=req.model_dump(by_alias=True, exclude_none=True),
+            )
+        )
+        return Product.model_validate(data)
+
+    # --- Admin: Plans ---
+
+    async def list_plans(self, product_ref: str) -> list[Plan]:
+        """List plans for a product. Maps to GET /v1/sdk/products/{ref}/plans."""
+        data = await self._http.send(_RequestSpec("GET", f"/v1/sdk/products/{product_ref}/plans"))
+        items: list[Any] = data if isinstance(data, list) else data.get("plans", [])
+        return [Plan.model_validate(p) for p in items]
+
+    async def create_plan(
+        self,
+        product_ref: str,
+        *,
+        name: str,
+        type: str,
+        price: float | None = None,
+        currency: str | None = None,
+        interval: str | None = None,
+    ) -> Plan:
+        """Create a plan for a product. Maps to POST /v1/sdk/products/{ref}/plans."""
+        req = CreatePlanRequest(
+            name=name, type=type, price=price, currency=currency, interval=interval
+        )
+        data = await self._http.send(
+            _RequestSpec(
+                "POST",
+                f"/v1/sdk/products/{product_ref}/plans",
+                json=req.model_dump(by_alias=True, exclude_none=True),
+            )
+        )
+        return Plan.model_validate(data)
+
+    async def update_plan(
+        self,
+        product_ref: str,
+        plan_ref: str,
+        *,
+        name: str | None = None,
+        type: str | None = None,
+        price: float | None = None,
+        currency: str | None = None,
+        interval: str | None = None,
+    ) -> Plan:
+        """Update a plan. Maps to PUT /v1/sdk/products/{ref}/plans/{ref}."""
+        req = UpdatePlanRequest(
+            name=name, type=type, price=price, currency=currency, interval=interval
+        )
+        data = await self._http.send(
+            _RequestSpec(
+                "PUT",
+                f"/v1/sdk/products/{product_ref}/plans/{plan_ref}",
+                json=req.model_dump(by_alias=True, exclude_none=True),
+            )
+        )
+        return Plan.model_validate(data)
+
+    async def delete_plan(self, product_ref: str, plan_ref: str) -> dict[str, Any]:
+        """Delete a plan. Maps to DELETE /v1/sdk/products/{ref}/plans/{ref}."""
+        return await self._http.send(
+            _RequestSpec("DELETE", f"/v1/sdk/products/{product_ref}/plans/{plan_ref}")
+        )
+
+    # --- Admin: Merchant + Platform ---
+
+    async def get_merchant(self) -> Merchant:
+        """Get merchant account details. Maps to GET /v1/sdk/merchant."""
+        data = await self._http.send(_RequestSpec("GET", "/v1/sdk/merchant"))
+        return Merchant.model_validate(data)
+
+    async def get_platform_config(self) -> PlatformConfig:
+        """Get platform-level configuration. Maps to GET /v1/sdk/platform-config."""
+        data = await self._http.send(_RequestSpec("GET", "/v1/sdk/platform-config"))
+        return PlatformConfig.model_validate(data)

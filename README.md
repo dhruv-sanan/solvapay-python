@@ -75,7 +75,7 @@ paid = monetize_tool(raw, product="prd_0QKI8NHF")
 When the customer is over-limit the tool returns a structured dict with `checkout_url` — the agent surfaces it to the user instead of raising an exception.
 
 ```bash
-pip install solvapay[langchain]
+pip install solvapay-python[langchain]
 ```
 
 See [`examples/langchain-paywall/`](examples/langchain-paywall/) for a full agent example.
@@ -94,7 +94,7 @@ app.include_router(webhook_router(secret=os.environ["SOLVAPAY_WEBHOOK_SECRET"], 
 ```
 
 ```bash
-pip install solvapay[fastapi]
+pip install solvapay-python[fastapi]
 ```
 
 ## Paywall state classifier
