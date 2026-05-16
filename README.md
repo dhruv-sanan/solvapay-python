@@ -1,19 +1,25 @@
 # solvapay-python
 
+[![PyPI](https://img.shields.io/pypi/v/solvapay-python)](https://pypi.org/project/solvapay-python/)
+
 Community Python SDK for [SolvaPay](https://solvapay.com) — payment rails for the agentic economy.
 
-> **Status:** v0.5, community-maintained. Pending official adoption.
+> **Status:** v0.6, community-maintained. Available on PyPI. Pending official adoption.
 > Mirrors the most-used surface of [@solvapay/core](https://github.com/solvapay/solvapay-sdk).
 
 Python is the dominant language for agent frameworks (LangChain, FastMCP, CrewAI, AutoGen). SolvaPay's official SDK is TypeScript-only. This SDK brings first-class Python support so agent developers can gate tools behind paywalls without switching ecosystems.
 
-> 🎬 **New in v0.5:** Paywall state classifier (`paywall_state` module) and LangChain `monetize_tool` decorator — gate any LangChain tool behind a SolvaPay paywall with one line.
+> **New in v0.6:** Admin endpoints (products, plans, merchant, platform config). Published to PyPI.
+> **v0.5:** Paywall state classifier (`paywall_state` module) and LangChain `monetize_tool` decorator — gate any LangChain tool behind a SolvaPay paywall with one line.
 > **v0.4:** Async client (`AsyncSolvaPay`), lifecycle ops, typed webhook events.
 
 ## Install
 
 ```bash
-pip install git+https://github.com/dhruv-sanan/solvapay-python
+pip install solvapay-python
+# with optional extras:
+pip install solvapay-python[langchain]
+pip install solvapay-python[fastapi]
 ```
 
 ## Quickstart
@@ -223,6 +229,7 @@ async def handle_webhook(request: Request) -> dict:
 - v0.3 — FastMCP paywall demo (`examples/fastmcp-paywall/`) ✅
 - v0.4 — async client (`AsyncSolvaPay`), lifecycle ops, typed webhook events ✅
 - v0.5 — paywall state classifier, LangChain `monetize_tool` decorator ✅
+- v0.6 — admin endpoints (products, plans, merchant, platform config), PyPI publish ✅
 
 ## Contributing
 
