@@ -21,24 +21,44 @@ from solvapay.events import (
     PurchaseUpdated,
     WebhookEvent,
 )
-from solvapay.exceptions import SolvaPayAPIError, SolvaPayError
+from solvapay.exceptions import (
+    APIConnectionError,
+    APIError,
+    APIServerError,
+    APITimeoutError,
+    AuthenticationError,
+    InvalidRequestError,
+    NotFoundError,
+    PermissionError,
+    RateLimitError,
+    SolvaPayAPIError,
+    SolvaPayError,
+)
 from solvapay.models import BalanceResponse, Merchant, Plan, PlatformConfig, Product
 from solvapay.paywall import PaywallRequired
 from solvapay.webhooks import verify_webhook
 
 __all__ = [
+    "APIConnectionError",
+    "APIError",
+    "APIServerError",
+    "APITimeoutError",
     "AsyncSolvaPay",
+    "AuthenticationError",
     "BalanceResponse",
     "CheckoutSessionCreated",
     "CustomerCreated",
     "CustomerDeleted",
     "CustomerUpdated",
+    "InvalidRequestError",
     "Merchant",
+    "NotFoundError",
     "PaymentFailed",
     "PaymentRefundFailed",
     "PaymentRefunded",
     "PaymentSucceeded",
     "PaywallRequired",
+    "PermissionError",
     "Plan",
     "PlatformConfig",
     "Product",
@@ -47,6 +67,7 @@ __all__ = [
     "PurchaseExpired",
     "PurchaseSuspended",
     "PurchaseUpdated",
+    "RateLimitError",
     "SolvaPay",
     "SolvaPayAPIError",
     "SolvaPayError",
@@ -54,4 +75,4 @@ __all__ = [
     "paywall",
     "verify_webhook",
 ]
-__version__ = "0.7.0"
+__version__ = "0.7.1"
