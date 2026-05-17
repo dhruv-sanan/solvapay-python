@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import time
 from typing import Any
 
@@ -54,11 +55,13 @@ class SolvaPay:
         *,
         base_url: str | None = None,
         timeout: float = 30.0,
+        logger: logging.Logger | None = None,
     ) -> None:
         self._http = HttpClient(
             api_key=resolve_api_key(api_key),
             base_url=resolve_base_url(base_url),
             timeout=timeout,
+            logger=logger,
         )
 
     def close(self) -> None:

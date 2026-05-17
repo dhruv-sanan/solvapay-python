@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -18,6 +20,8 @@ from solvapay.exceptions import (
     PermissionError,
     RateLimitError,
 )
+
+_logger = logging.getLogger("solvapay.http")
 
 
 @dataclass(frozen=True)
@@ -91,8 +95,44 @@ def _handle(response: httpx.Response) -> dict[str, Any]:
     return response.json()  # type: ignore[no-any-return]
 
 
+def _log_response(
+    logger: logging.Logger,
+    spec: _RequestSpec,
+    response: httpx.Response,
+    duration_ms: int,
+) -> None:
+    request_id = response.headers.get("x-request-id") or response.headers.get("x-correlation-id")
+    extra: dict[str, object] = {"request_id": request_id, "duration_ms": duration_ms}
+    if response.is_success:
+        logger.info(
+            "%s %s → %d (%dms)",
+            spec.method,
+            spec.path,
+            response.status_code,
+            duration_ms,
+            extra=extra,
+        )
+    else:
+        logger.warning(
+            "%s %s → %d (%dms)",
+            spec.method,
+            spec.path,
+            response.status_code,
+            duration_ms,
+            extra={**extra, "body_excerpt": response.text[:200]},
+        )
+
+
 class HttpClient:
-    def __init__(self, *, api_key: str, base_url: str, timeout: float = 30.0) -> None:
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        base_url: str,
+        timeout: float = 30.0,
+        logger: logging.Logger | None = None,
+    ) -> None:
+        self._logger = logger or _logger
         self._client = httpx.Client(
             base_url=base_url,
             headers={
@@ -113,20 +153,17 @@ class HttpClient:
         self.close()
 
     def send(self, spec: _RequestSpec) -> dict[str, Any]:
+        t0 = time.perf_counter()
         try:
-            return _handle(
-                self._client.request(
-                    spec.method,
-                    spec.path,
-                    json=spec.json,
-                    params=spec.params,
-                    headers=spec.headers(),
-                )
+            response = self._client.request(
+                spec.method, spec.path, json=spec.json, params=spec.params, headers=spec.headers()
             )
         except httpx.TimeoutException as exc:
             raise APITimeoutError(str(exc)) from exc
         except (httpx.ConnectError, httpx.ReadError) as exc:
             raise APIConnectionError(str(exc)) from exc
+        _log_response(self._logger, spec, response, int((time.perf_counter() - t0) * 1000))
+        return _handle(response)
 
     def request(
         self,
@@ -141,7 +178,15 @@ class HttpClient:
 
 
 class AsyncHttpClient:
-    def __init__(self, *, api_key: str, base_url: str, timeout: float = 30.0) -> None:
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        base_url: str,
+        timeout: float = 30.0,
+        logger: logging.Logger | None = None,
+    ) -> None:
+        self._logger = logger or _logger
         self._client = httpx.AsyncClient(
             base_url=base_url,
             headers={
@@ -162,17 +207,14 @@ class AsyncHttpClient:
         await self.aclose()
 
     async def send(self, spec: _RequestSpec) -> dict[str, Any]:
+        t0 = time.perf_counter()
         try:
-            return _handle(
-                await self._client.request(
-                    spec.method,
-                    spec.path,
-                    json=spec.json,
-                    params=spec.params,
-                    headers=spec.headers(),
-                )
+            response = await self._client.request(
+                spec.method, spec.path, json=spec.json, params=spec.params, headers=spec.headers()
             )
         except httpx.TimeoutException as exc:
             raise APITimeoutError(str(exc)) from exc
         except (httpx.ConnectError, httpx.ReadError) as exc:
             raise APIConnectionError(str(exc)) from exc
+        _log_response(self._logger, spec, response, int((time.perf_counter() - t0) * 1000))
+        return _handle(response)

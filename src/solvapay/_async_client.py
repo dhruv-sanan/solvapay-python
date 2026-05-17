@@ -6,6 +6,7 @@ Use `async with AsyncSolvaPay() as sv: ...` for proper teardown.
 
 from __future__ import annotations
 
+import logging
 import time
 from typing import Any
 
@@ -56,11 +57,13 @@ class AsyncSolvaPay:
         *,
         base_url: str | None = None,
         timeout: float = 30.0,
+        logger: logging.Logger | None = None,
     ) -> None:
         self._http = AsyncHttpClient(
             api_key=resolve_api_key(api_key),
             base_url=resolve_base_url(base_url),
             timeout=timeout,
+            logger=logger,
         )
 
     async def aclose(self) -> None:
