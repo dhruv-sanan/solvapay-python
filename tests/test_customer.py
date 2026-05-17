@@ -106,3 +106,55 @@ def test_get_customer_by_email_uses_query_string(client: SolvaPay) -> None:
 def test_get_customer_raises_if_no_params(client: SolvaPay) -> None:
     with pytest.raises(ValueError, match="Must provide"):
         client.get_customer()
+
+
+# ---------------------------------------------------------------------------
+# Real API shape regressions (v0.7.0): server returns `reference` not `customerRef`
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_ensure_customer_accepts_reference_key_from_real_api(client: SolvaPay) -> None:
+    """Real /v1/sdk/customers GET returns `reference`, not `customerRef`."""
+    respx.get("https://api.solvapay.test/v1/sdk/customers").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "reference": "cus_YARKQDEN",
+                "name": "Demo",
+                "email": "demo@demo.local",
+                "externalRef": "user_42",
+                "purchases": [],
+            },
+        )
+    )
+    ref = client.ensure_customer("user_42")
+    assert ref == "cus_YARKQDEN"
+
+
+@respx.mock
+def test_get_customer_parses_reference_key_from_real_api(client: SolvaPay) -> None:
+    respx.get("https://api.solvapay.test/v1/sdk/customers/cus_abc").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "reference": "cus_abc",
+                "name": "Alice",
+                "email": "a@b.com",
+                "externalRef": "ext_1",
+                "purchases": [
+                    {
+                        "reference": "pur_1",
+                        "status": "active",
+                        "startDate": "2026-05-11T00:00:00Z",
+                        "amount": 1000,
+                        "currency": "USD",
+                    }
+                ],
+            },
+        )
+    )
+    customer = client.get_customer("cus_abc")
+    assert customer.customer_ref == "cus_abc"
+    assert customer.purchases is not None
+    assert customer.purchases[0].status == "active"

@@ -108,8 +108,9 @@ class AsyncSolvaPay:
             existing = await self._http.send(
                 _RequestSpec("GET", "/v1/sdk/customers", params={"externalRef": lookup_ref})
             )
-            if existing.get("customerRef"):
-                return str(existing["customerRef"])
+            ref = existing.get("reference") or existing.get("customerRef")
+            if ref:
+                return str(ref)
         except SolvaPayAPIError as exc:
             if exc.status_code != 404:
                 raise
@@ -124,7 +125,10 @@ class AsyncSolvaPay:
                 "POST", "/v1/sdk/customers", json=req.model_dump(by_alias=True, exclude_none=True)
             )
         )
-        return str(created["customerRef"])
+        ref = created.get("reference") or created.get("customerRef")
+        if not ref:
+            raise SolvaPayAPIError(200, f"customer create returned no reference: {created!r}")
+        return str(ref)
 
     async def get_customer(
         self,

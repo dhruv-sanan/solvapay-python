@@ -95,12 +95,21 @@ async def test_async_update_customer_sends_patch(async_client: AsyncSolvaPay) ->
 def test_get_customer_balance_returns_balance(client: SolvaPay) -> None:
     respx.get(f"{BASE}/v1/sdk/customers/cus_1/balance").mock(
         return_value=httpx.Response(
-            200, json={"customerRef": "cus_1", "balance": 42.5, "currency": "USD"}
+            200,
+            json={
+                "customerRef": "cus_1",
+                "credits": 4250,
+                "displayCurrency": "USD",
+                "creditsPerMinorUnit": 100,
+                "displayExchangeRate": 1.0,
+            },
         )
     )
     balance = client.get_customer_balance("cus_1")
     assert balance.customer_ref == "cus_1"
-    assert balance.balance == 42.5
+    assert balance.credits == 4250
+    assert balance.credits_per_minor_unit == 100
+    assert balance.balance == 0.425  # derived: credits / credits_per_minor_unit / 100 (minor→major unit)
     assert balance.currency == "USD"
 
 
@@ -108,11 +117,18 @@ def test_get_customer_balance_returns_balance(client: SolvaPay) -> None:
 async def test_async_get_customer_balance_returns_balance(async_client: AsyncSolvaPay) -> None:
     respx.get(f"{BASE}/v1/sdk/customers/cus_1/balance").mock(
         return_value=httpx.Response(
-            200, json={"customerRef": "cus_1", "balance": 10.0, "currency": "EUR"}
+            200,
+            json={
+                "customerRef": "cus_1",
+                "credits": 1000,
+                "displayCurrency": "EUR",
+                "creditsPerMinorUnit": 100,
+                "displayExchangeRate": 1.0,
+            },
         )
     )
     balance = await async_client.get_customer_balance("cus_1")
-    assert balance.balance == 10.0
+    assert balance.balance == 0.10
     assert balance.currency == "EUR"
 
 

@@ -1045,8 +1045,8 @@ wheels = [
 ]
 
 [[package]]
-name = "solvapay"
-version = "0.6.0"
+name = "solvapay-python"
+version = "0.7.1"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },

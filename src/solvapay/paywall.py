@@ -72,7 +72,16 @@ def require(
                 plan_ref=plan,
             )
             if not limits.within_limits:
-                raise PaywallRequired(checkout_url=limits.checkout_url)
+                checkout_url = limits.checkout_url
+                if checkout_url is None:
+                    try:
+                        session = sv.create_checkout_session(
+                            customer_ref=customer_ref, product_ref=product, plan_ref=plan
+                        )
+                        checkout_url = session.checkout_url
+                    except SolvaPayError:
+                        pass
+                raise PaywallRequired(checkout_url=checkout_url)
             return fn(*args, **kwargs)
 
         return wrapper
@@ -122,7 +131,16 @@ def require_async(
                 plan_ref=plan,
             )
             if not limits.within_limits:
-                raise PaywallRequired(checkout_url=limits.checkout_url)
+                checkout_url = limits.checkout_url
+                if checkout_url is None:
+                    try:
+                        session = await sv.create_checkout_session(
+                            customer_ref=customer_ref, product_ref=product, plan_ref=plan
+                        )
+                        checkout_url = session.checkout_url
+                    except SolvaPayError:
+                        pass
+                raise PaywallRequired(checkout_url=checkout_url)
             return await fn(*args, **kwargs)
 
         return wrapper

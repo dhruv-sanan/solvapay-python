@@ -37,7 +37,7 @@ class HttpClient:
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                "User-Agent": "solvapay-python/0.4.0",
+                "User-Agent": "solvapay-python/0.7.0",
             },
             timeout=timeout,
         )
@@ -81,7 +81,7 @@ class AsyncHttpClient:
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                "User-Agent": "solvapay-python/0.4.0",
+                "User-Agent": "solvapay-python/0.7.0",
             },
             timeout=timeout,
         )

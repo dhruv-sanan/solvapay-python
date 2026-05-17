@@ -7,7 +7,7 @@ lets callers use either form during construction.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, computed_field
 
 
 class _Base(BaseModel):
@@ -40,7 +40,12 @@ class Purchase(_Base):
 
 
 class Customer(_Base):
-    customer_ref: str = Field(alias="customerRef")
+    # Real API returns `reference` on GET /customers; legacy/internal callers may send
+    # `customerRef`. Accept either on input. Field stays `customer_ref` in Python.
+    customer_ref: str = Field(
+        validation_alias=AliasChoices("reference", "customerRef"),
+        serialization_alias="reference",
+    )
     email: str | None = None
     name: str | None = None
     external_ref: str | None = Field(default=None, alias="externalRef")
@@ -98,10 +103,31 @@ class UpdateCustomerRequest(_Base):
 
 
 class BalanceResponse(_Base):
+    """Customer credit balance from GET /v1/sdk/customers/{ref}/balance.
+
+    Real API returns credits as an integer in minor units along with the
+    conversion factor (e.g., credits=100000, creditsPerMinorUnit=100 means
+    1000 display units). `balance` and `currency` are derived for backward
+    compatibility with the pre-v0.7.0 shape.
+    """
+
     customer_ref: str = Field(alias="customerRef")
-    balance: float
-    currency: str
-    plan: str | None = None
+    credits: int = 0
+    display_currency: str = Field(default="USD", alias="displayCurrency")
+    credits_per_minor_unit: int = Field(default=100, alias="creditsPerMinorUnit")
+    display_exchange_rate: float = Field(default=1.0, alias="displayExchangeRate")
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def balance(self) -> float:
+        if self.credits_per_minor_unit == 0:
+            return float(self.credits)
+        return self.credits / self.credits_per_minor_unit / 100
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def currency(self) -> str:
+        return self.display_currency
 
 
 class CancelPurchaseRequest(_Base):

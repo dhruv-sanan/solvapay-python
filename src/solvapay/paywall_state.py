@@ -2,14 +2,22 @@
 
 Input: a LimitResponse (output of check_limits).
 Output: a structured state + display copy + recovery action.
+
+`decide()` is pure. `gate()` is a convenience wrapper that enriches the
+LimitResponse with a checkout URL (via create_checkout_session) and plan
+info (via get_customer) before classifying — for SolvaPay environments
+where /v1/sdk/limits omits those fields.
 """
 
 from __future__ import annotations
 
 from enum import Enum
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from solvapay.models import LimitResponse
+
+if TYPE_CHECKING:
+    from solvapay.client import SolvaPay
 
 
 class PaywallState(str, Enum):
@@ -119,3 +127,61 @@ def decide(limits: LimitResponse) -> GateDecision:
         recovery_tool=_RECOVERY_TOOL[state],
         checkout_url=limits.checkout_url,
     )
+
+
+def gate(
+    client: SolvaPay,
+    *,
+    customer_ref: str,
+    product_ref: str,
+    plan_ref: str | None = None,
+) -> GateDecision:
+    """One-call helper: check_limits + enrich + decide.
+
+    Calls /v1/sdk/limits, and if the response is blocked but lacks a
+    checkout URL or plan name, fetches them via create_checkout_session
+    and get_customer respectively. Then classifies.
+
+    Use this in product UX where you want one call that yields a fully
+    actionable GateDecision (checkout URL ready to link, plan name ready
+    to display) regardless of which fields the API populated.
+    """
+    limits = client.check_limits(
+        customer_ref=customer_ref, product_ref=product_ref, plan_ref=plan_ref
+    )
+    return _enrich_and_decide(
+        client, limits, customer_ref=customer_ref, product_ref=product_ref, plan_ref=plan_ref
+    )
+
+
+def _enrich_and_decide(
+    client: SolvaPay,
+    limits: LimitResponse,
+    *,
+    customer_ref: str,
+    product_ref: str,
+    plan_ref: str | None,
+) -> GateDecision:
+    if not limits.within_limits and limits.checkout_url is None:
+        try:
+            session = client.create_checkout_session(
+                customer_ref=customer_ref, product_ref=product_ref, plan_ref=plan_ref
+            )
+            limits = limits.model_copy(update={"checkout_url": session.checkout_url})
+        except Exception:
+            pass
+
+    if limits.plan is None:
+        try:
+            customer = client.get_customer(customer_ref=customer_ref)
+            if customer.purchases:
+                for purchase in customer.purchases:
+                    if purchase.status == "active":
+                        plan_name = purchase.plan_ref or purchase.product_name
+                        if plan_name:
+                            limits = limits.model_copy(update={"plan": plan_name})
+                            break
+        except Exception:
+            pass
+
+    return decide(limits)
