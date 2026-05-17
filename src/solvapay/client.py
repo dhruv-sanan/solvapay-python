@@ -77,6 +77,7 @@ class SolvaPay:
         product_ref: str,
         plan_ref: str | None = None,
         return_url: str | None = None,
+        idempotency_key: str | None = None,
     ) -> CheckoutSession:
         """Create a hosted checkout session.
 
@@ -101,6 +102,7 @@ class SolvaPay:
             "POST",
             "/v1/sdk/checkout-sessions",
             json=req.model_dump(by_alias=True, exclude_none=True),
+            idempotency_key=idempotency_key,
         )
         return CheckoutSession.model_validate(data)
 
@@ -111,6 +113,7 @@ class SolvaPay:
         *,
         email: str | None = None,
         name: str | None = None,
+        idempotency_key: str | None = None,
     ) -> str:
         """Idempotently create or look up a customer.
 
@@ -140,6 +143,7 @@ class SolvaPay:
             "POST",
             "/v1/sdk/customers",
             json=req.model_dump(by_alias=True, exclude_none=True),
+            idempotency_key=idempotency_key,
         )
         ref = created.get("reference") or created.get("customerRef")
         if not ref:
@@ -238,18 +242,27 @@ class SolvaPay:
         data = self._http.request("GET", f"/v1/sdk/customers/{customer_ref}/balance")
         return BalanceResponse.model_validate(data)
 
-    def cancel_purchase(self, purchase_ref: str, *, reason: str | None = None) -> dict[str, Any]:
+    def cancel_purchase(
+        self, purchase_ref: str, *, reason: str | None = None, idempotency_key: str | None = None
+    ) -> dict[str, Any]:
         """Cancel a purchase. Maps to POST /v1/sdk/purchases/{ref}/cancel."""
         req = CancelPurchaseRequest(reason=reason)
         return self._http.request(
             "POST",
             f"/v1/sdk/purchases/{purchase_ref}/cancel",
             json=req.model_dump(by_alias=True, exclude_none=True),
+            idempotency_key=idempotency_key,
         )
 
-    def reactivate_purchase(self, purchase_ref: str) -> dict[str, Any]:
+    def reactivate_purchase(
+        self, purchase_ref: str, *, idempotency_key: str | None = None
+    ) -> dict[str, Any]:
         """Reactivate a cancelled purchase. Maps to POST /v1/sdk/purchases/{ref}/reactivate."""
-        return self._http.request("POST", f"/v1/sdk/purchases/{purchase_ref}/reactivate")
+        return self._http.request(
+            "POST",
+            f"/v1/sdk/purchases/{purchase_ref}/reactivate",
+            idempotency_key=idempotency_key,
+        )
 
     # --- Admin: Products ---
 
@@ -264,13 +277,16 @@ class SolvaPay:
         data = self._http.request("GET", f"/v1/sdk/products/{product_ref}")
         return Product.model_validate(data)
 
-    def create_product(self, *, name: str, type: str, default_currency: str) -> Product:
+    def create_product(
+        self, *, name: str, type: str, default_currency: str, idempotency_key: str | None = None
+    ) -> Product:
         """Create a product. Maps to POST /v1/sdk/products."""
         req = CreateProductRequest(name=name, type=type, default_currency=default_currency)
         data = self._http.request(
             "POST",
             "/v1/sdk/products",
             json=req.model_dump(by_alias=True, exclude_none=True),
+            idempotency_key=idempotency_key,
         )
         return Product.model_validate(data)
 
@@ -278,13 +294,16 @@ class SolvaPay:
         """Delete a product. Maps to DELETE /v1/sdk/products/{ref}."""
         return self._http.request("DELETE", f"/v1/sdk/products/{product_ref}")
 
-    def clone_product(self, product_ref: str, *, new_name: str) -> Product:
+    def clone_product(
+        self, product_ref: str, *, new_name: str, idempotency_key: str | None = None
+    ) -> Product:
         """Clone a product with a new name. Maps to POST /v1/sdk/products/{ref}/clone."""
         req = CloneProductRequest(new_name=new_name)
         data = self._http.request(
             "POST",
             f"/v1/sdk/products/{product_ref}/clone",
             json=req.model_dump(by_alias=True, exclude_none=True),
+            idempotency_key=idempotency_key,
         )
         return Product.model_validate(data)
 
@@ -305,6 +324,7 @@ class SolvaPay:
         price: float | None = None,
         currency: str | None = None,
         interval: str | None = None,
+        idempotency_key: str | None = None,
     ) -> Plan:
         """Create a plan for a product. Maps to POST /v1/sdk/products/{ref}/plans."""
         req = CreatePlanRequest(
@@ -314,6 +334,7 @@ class SolvaPay:
             "POST",
             f"/v1/sdk/products/{product_ref}/plans",
             json=req.model_dump(by_alias=True, exclude_none=True),
+            idempotency_key=idempotency_key,
         )
         return Plan.model_validate(data)
 

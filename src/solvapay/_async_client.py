@@ -79,6 +79,7 @@ class AsyncSolvaPay:
         product_ref: str,
         plan_ref: str | None = None,
         return_url: str | None = None,
+        idempotency_key: str | None = None,
     ) -> CheckoutSession:
         req = CheckoutSessionRequest(
             customer_ref=customer_ref,
@@ -91,6 +92,7 @@ class AsyncSolvaPay:
                 "POST",
                 "/v1/sdk/checkout-sessions",
                 json=req.model_dump(by_alias=True, exclude_none=True),
+                idempotency_key=idempotency_key,
             )
         )
         return CheckoutSession.model_validate(data)
@@ -102,6 +104,7 @@ class AsyncSolvaPay:
         *,
         email: str | None = None,
         name: str | None = None,
+        idempotency_key: str | None = None,
     ) -> str:
         lookup_ref = external_ref or customer_ref
         try:
@@ -122,7 +125,10 @@ class AsyncSolvaPay:
         )
         created = await self._http.send(
             _RequestSpec(
-                "POST", "/v1/sdk/customers", json=req.model_dump(by_alias=True, exclude_none=True)
+                "POST",
+                "/v1/sdk/customers",
+                json=req.model_dump(by_alias=True, exclude_none=True),
+                idempotency_key=idempotency_key,
             )
         )
         ref = created.get("reference") or created.get("customerRef")
@@ -226,7 +232,11 @@ class AsyncSolvaPay:
         return BalanceResponse.model_validate(data)
 
     async def cancel_purchase(
-        self, purchase_ref: str, *, reason: str | None = None
+        self,
+        purchase_ref: str,
+        *,
+        reason: str | None = None,
+        idempotency_key: str | None = None,
     ) -> dict[str, Any]:
         """Cancel a purchase. Maps to POST /v1/sdk/purchases/{ref}/cancel."""
         req = CancelPurchaseRequest(reason=reason)
@@ -235,13 +245,20 @@ class AsyncSolvaPay:
                 "POST",
                 f"/v1/sdk/purchases/{purchase_ref}/cancel",
                 json=req.model_dump(by_alias=True, exclude_none=True),
+                idempotency_key=idempotency_key,
             )
         )
 
-    async def reactivate_purchase(self, purchase_ref: str) -> dict[str, Any]:
+    async def reactivate_purchase(
+        self, purchase_ref: str, *, idempotency_key: str | None = None
+    ) -> dict[str, Any]:
         """Reactivate a cancelled purchase. Maps to POST /v1/sdk/purchases/{ref}/reactivate."""
         return await self._http.send(
-            _RequestSpec("POST", f"/v1/sdk/purchases/{purchase_ref}/reactivate")
+            _RequestSpec(
+                "POST",
+                f"/v1/sdk/purchases/{purchase_ref}/reactivate",
+                idempotency_key=idempotency_key,
+            )
         )
 
     # --- Admin: Products ---
@@ -257,7 +274,9 @@ class AsyncSolvaPay:
         data = await self._http.send(_RequestSpec("GET", f"/v1/sdk/products/{product_ref}"))
         return Product.model_validate(data)
 
-    async def create_product(self, *, name: str, type: str, default_currency: str) -> Product:
+    async def create_product(
+        self, *, name: str, type: str, default_currency: str, idempotency_key: str | None = None
+    ) -> Product:
         """Create a product. Maps to POST /v1/sdk/products."""
         req = CreateProductRequest(name=name, type=type, default_currency=default_currency)
         data = await self._http.send(
@@ -265,6 +284,7 @@ class AsyncSolvaPay:
                 "POST",
                 "/v1/sdk/products",
                 json=req.model_dump(by_alias=True, exclude_none=True),
+                idempotency_key=idempotency_key,
             )
         )
         return Product.model_validate(data)
@@ -273,7 +293,9 @@ class AsyncSolvaPay:
         """Delete a product. Maps to DELETE /v1/sdk/products/{ref}."""
         return await self._http.send(_RequestSpec("DELETE", f"/v1/sdk/products/{product_ref}"))
 
-    async def clone_product(self, product_ref: str, *, new_name: str) -> Product:
+    async def clone_product(
+        self, product_ref: str, *, new_name: str, idempotency_key: str | None = None
+    ) -> Product:
         """Clone a product with a new name. Maps to POST /v1/sdk/products/{ref}/clone."""
         req = CloneProductRequest(new_name=new_name)
         data = await self._http.send(
@@ -281,6 +303,7 @@ class AsyncSolvaPay:
                 "POST",
                 f"/v1/sdk/products/{product_ref}/clone",
                 json=req.model_dump(by_alias=True, exclude_none=True),
+                idempotency_key=idempotency_key,
             )
         )
         return Product.model_validate(data)
@@ -302,6 +325,7 @@ class AsyncSolvaPay:
         price: float | None = None,
         currency: str | None = None,
         interval: str | None = None,
+        idempotency_key: str | None = None,
     ) -> Plan:
         """Create a plan for a product. Maps to POST /v1/sdk/products/{ref}/plans."""
         req = CreatePlanRequest(
@@ -312,6 +336,7 @@ class AsyncSolvaPay:
                 "POST",
                 f"/v1/sdk/products/{product_ref}/plans",
                 json=req.model_dump(by_alias=True, exclude_none=True),
+                idempotency_key=idempotency_key,
             )
         )
         return Plan.model_validate(data)
