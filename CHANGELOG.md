@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.7.2 — 2026-05-18
+
+Bug fixes and documentation update.
+
+### Fixed
+- **`paywall.require_async`**: `AsyncSolvaPay()` instantiated without a caller-supplied `client=` was not closed after the decorated function returned, leaking the underlying `httpx.AsyncClient` connection pool. Wrapped in `try/finally`; `await sv.aclose()` called when the decorator owns the client.
+- **`examples/fastmcp-paywall/pyproject.toml`**: dependency used wrong PyPI dist name (`solvapay`) and a stale `@v0.3.0` pin. Updated to `solvapay-python>=0.7.2`.
+- **`examples/langchain-paywall/pyproject.toml`**: same wrong dist name and stale `@v0.5.0` pin. Updated to `solvapay-python[langchain]>=0.7.2`.
+
+### Docs
+- **README** updated to v0.7.1 surface: `paywall_state.gate()`, error hierarchy, idempotency keys, admin ops table, marketplace example, roadmap entries for v0.7.0 and v0.7.1.
+
+### Internal
+- `tests/test_lifecycle.py` reformatted (ruff format compliance)
+
 ## 0.7.1 — 2026-05-17
 
 Payments-grade hardening: structured errors, idempotency keys, py.typed, structured logging.

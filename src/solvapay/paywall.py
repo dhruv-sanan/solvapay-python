@@ -124,24 +124,29 @@ def require_async(
                     f"@paywall.require_async expected str kwarg '{customer_ref_arg}', "
                     f"got {type(customer_ref).__name__}"
                 )
-            sv: AsyncSolvaPay = client if isinstance(client, AsyncSolvaPay) else AsyncSolvaPay()
-            limits = await sv.check_limits(
-                customer_ref=customer_ref,
-                product_ref=product,
-                plan_ref=plan,
-            )
-            if not limits.within_limits:
-                checkout_url = limits.checkout_url
-                if checkout_url is None:
-                    try:
-                        session = await sv.create_checkout_session(
-                            customer_ref=customer_ref, product_ref=product, plan_ref=plan
-                        )
-                        checkout_url = session.checkout_url
-                    except SolvaPayError:
-                        pass
-                raise PaywallRequired(checkout_url=checkout_url)
-            return await fn(*args, **kwargs)
+            _owns_client = not isinstance(client, AsyncSolvaPay)
+            sv: AsyncSolvaPay = AsyncSolvaPay() if _owns_client else client  # type: ignore[assignment]
+            try:
+                limits = await sv.check_limits(
+                    customer_ref=customer_ref,
+                    product_ref=product,
+                    plan_ref=plan,
+                )
+                if not limits.within_limits:
+                    checkout_url = limits.checkout_url
+                    if checkout_url is None:
+                        try:
+                            session = await sv.create_checkout_session(
+                                customer_ref=customer_ref, product_ref=product, plan_ref=plan
+                            )
+                            checkout_url = session.checkout_url
+                        except SolvaPayError:
+                            pass
+                    raise PaywallRequired(checkout_url=checkout_url)
+                return await fn(*args, **kwargs)
+            finally:
+                if _owns_client:
+                    await sv.aclose()
 
         return wrapper
 

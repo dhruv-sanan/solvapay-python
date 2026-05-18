@@ -109,7 +109,9 @@ def test_get_customer_balance_returns_balance(client: SolvaPay) -> None:
     assert balance.customer_ref == "cus_1"
     assert balance.credits == 4250
     assert balance.credits_per_minor_unit == 100
-    assert balance.balance == 0.425  # derived: credits / credits_per_minor_unit / 100 (minor→major unit)
+    assert (
+        balance.balance == 0.425
+    )  # derived: credits / credits_per_minor_unit / 100 (minor→major unit)
     assert balance.currency == "USD"
 
 
