@@ -12,8 +12,8 @@ from solvapay.paywall import PaywallRequired, require
 
 
 def _mock_client(*, within_limits: bool, checkout_url: str | None = None) -> SolvaPay:
-    client = MagicMock(spec=SolvaPay)
-    client.check_limits.return_value = LimitResponse(
+    client = MagicMock()  # no spec: instance attrs (limits, checkout) aren't class-level
+    client.limits.check.return_value = LimitResponse(
         within_limits=within_limits,
         remaining=5 if within_limits else 0,
         checkout_url=checkout_url,
@@ -29,7 +29,7 @@ def test_passes_through_when_within_limits() -> None:
         return "result"
 
     assert run(customer_ref="cus_123") == "result"
-    client.check_limits.assert_called_once_with(
+    client.limits.check.assert_called_once_with(
         customer_ref="cus_123", product_ref="prd_abc", plan_ref=None
     )
 
@@ -71,7 +71,7 @@ def test_custom_customer_ref_arg_name() -> None:
         return user_id
 
     assert run(user_id="cus_xyz") == "cus_xyz"
-    client.check_limits.assert_called_once_with(
+    client.limits.check.assert_called_once_with(
         customer_ref="cus_xyz", product_ref="prd_abc", plan_ref=None
     )
 
@@ -84,6 +84,6 @@ def test_plan_ref_forwarded_to_check_limits() -> None:
         pass
 
     run(customer_ref="cus_123")
-    client.check_limits.assert_called_once_with(
+    client.limits.check.assert_called_once_with(
         customer_ref="cus_123", product_ref="prd_abc", plan_ref="pln_starter"
     )
