@@ -6,7 +6,10 @@ from solvapay.operations._registry import _interpolate
 
 
 def test_simple_substitution() -> None:
-    assert _interpolate("/v1/sdk/customers/{customer_ref}", customer_ref="cus_abc") == "/v1/sdk/customers/cus_abc"
+    assert (
+        _interpolate("/v1/sdk/customers/{customer_ref}", customer_ref="cus_abc")
+        == "/v1/sdk/customers/cus_abc"
+    )
 
 
 def test_slash_in_value_is_encoded() -> None:

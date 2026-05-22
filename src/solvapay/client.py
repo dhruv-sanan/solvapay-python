@@ -3,32 +3,20 @@
 from __future__ import annotations
 
 import logging
-import time
 import warnings
 from typing import Any
 
 from solvapay._config import resolve_api_key, resolve_base_url
 from solvapay._http import HttpClient
-from solvapay.exceptions import SolvaPayAPIError
 from solvapay.models import (
     BalanceResponse,
-    CancelPurchaseRequest,
-    CheckLimitsRequest,
     CheckoutSession,
-    CheckoutSessionRequest,
-    CloneProductRequest,
-    CreateCustomerRequest,
-    CreatePlanRequest,
-    CreateProductRequest,
     Customer,
     LimitResponse,
     Merchant,
     Plan,
     PlatformConfig,
     Product,
-    TrackUsageRequest,
-    UpdateCustomerRequest,
-    UpdatePlanRequest,
 )
 from solvapay.operations.checkout import CheckoutOperations
 from solvapay.operations.customers import CustomersOperations
@@ -208,7 +196,9 @@ class SolvaPay:
         external_ref: str | None = None,
     ) -> Customer:
         _shim_warn("sv.customers.update()")
-        return self.customers.update(customer_ref, email=email, name=name, external_ref=external_ref)
+        return self.customers.update(
+            customer_ref, email=email, name=name, external_ref=external_ref
+        )
 
     def get_customer_balance(self, customer_ref: str) -> BalanceResponse:
         _shim_warn("sv.customers.balance()")
@@ -291,7 +281,13 @@ class SolvaPay:
     ) -> Plan:
         _shim_warn("sv.plans.update()")
         return self.plans.update(
-            product_ref, plan_ref, name=name, type=type, price=price, currency=currency, interval=interval
+            product_ref,
+            plan_ref,
+            name=name,
+            type=type,
+            price=price,
+            currency=currency,
+            interval=interval,
         )
 
     def delete_plan(self, product_ref: str, plan_ref: str) -> dict[str, Any]:

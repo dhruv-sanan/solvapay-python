@@ -53,12 +53,8 @@ class PydanticBodyResolver:
     def resolve(self, *args: Any, **kwargs: Any) -> str:
         body = kwargs.get(self._body_arg)
         if body is None:
-            raise ValueError(
-                f"PydanticBodyResolver: kwarg '{self._body_arg}' not found"
-            )
+            raise ValueError(f"PydanticBodyResolver: kwarg '{self._body_arg}' not found")
         val = getattr(body, self._field, None)
         if not isinstance(val, str):
-            raise ValueError(
-                f"PydanticBodyResolver: field '{self._field}' is not a str"
-            )
+            raise ValueError(f"PydanticBodyResolver: field '{self._field}' is not a str")
         return val

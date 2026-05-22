@@ -5,7 +5,6 @@ from __future__ import annotations
 import warnings
 
 import httpx
-import pytest
 import respx
 
 from solvapay import SolvaPay
@@ -36,7 +35,7 @@ def test_flat_shim_emits_deprecation_warning(client: SolvaPay) -> None:
 
 @respx.mock
 def test_namespace_and_flat_return_identical_result(client: SolvaPay) -> None:
-    route = respx.get(f"{BASE}/v1/sdk/customers/cus_abc").mock(
+    respx.get(f"{BASE}/v1/sdk/customers/cus_abc").mock(
         return_value=httpx.Response(200, json=CUSTOMER_RESPONSE)
     )
     ns = client.customers.get("cus_abc")
@@ -47,5 +46,14 @@ def test_namespace_and_flat_return_identical_result(client: SolvaPay) -> None:
 
 @respx.mock
 def test_sv_has_all_namespace_attrs(client: SolvaPay) -> None:
-    for attr in ("customers", "checkout", "limits", "purchases", "usage", "products", "plans", "merchant"):
+    for attr in (
+        "customers",
+        "checkout",
+        "limits",
+        "purchases",
+        "usage",
+        "products",
+        "plans",
+        "merchant",
+    ):
         assert hasattr(client, attr), f"SolvaPay missing namespace: {attr}"

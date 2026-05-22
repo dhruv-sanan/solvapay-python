@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import httpx
-import pytest
 import respx
 
 from solvapay import SolvaPay
@@ -89,9 +86,10 @@ def test_monetize_tool_works_without_langchain_core_installed() -> None:
     saved = sys.modules.get("langchain_core")
     sys.modules["langchain_core"] = None  # type: ignore[assignment]
     try:
+        import importlib
+
         from solvapay.adapters import langchain as lc_mod
 
-        import importlib
         importlib.reload(lc_mod)
         assert hasattr(lc_mod, "monetize_tool")
     finally:

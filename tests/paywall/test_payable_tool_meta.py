@@ -46,7 +46,7 @@ def test_payable_tool_rejects_classmethod() -> None:
 
 def test_payable_tool_rejects_staticmethod() -> None:
     sm: object = staticmethod(lambda: None)
-    with pytest.raises(TypeError, match="staticmethod|classmethod"):
+    with pytest.raises(TypeError, match=r"staticmethod|classmethod"):
         payable_tool(product="prd_x")(sm)  # type: ignore[arg-type]
 
 

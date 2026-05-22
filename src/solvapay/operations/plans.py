@@ -41,7 +41,9 @@ class PlansOperations:
         idempotency_key: str | None = None,
     ) -> Plan:
         assert self._sync is not None
-        req = CreatePlanRequest(name=name, type=type, price=price, currency=currency, interval=interval)
+        req = CreatePlanRequest(
+            name=name, type=type, price=price, currency=currency, interval=interval
+        )
         url = _interpolate(REGISTRY["plans.create"].path_template, product_ref=product_ref)
         resp = self._sync.send(
             RequestSpec(
@@ -65,8 +67,12 @@ class PlansOperations:
         interval: str | None = None,
     ) -> Plan:
         assert self._sync is not None
-        req = UpdatePlanRequest(name=name, type=type, price=price, currency=currency, interval=interval)
-        url = _interpolate(REGISTRY["plans.update"].path_template, product_ref=product_ref, plan_ref=plan_ref)
+        req = UpdatePlanRequest(
+            name=name, type=type, price=price, currency=currency, interval=interval
+        )
+        url = _interpolate(
+            REGISTRY["plans.update"].path_template, product_ref=product_ref, plan_ref=plan_ref
+        )
         resp = self._sync.send(
             RequestSpec(
                 method="PUT",
@@ -79,7 +85,9 @@ class PlansOperations:
 
     def delete(self, product_ref: str, plan_ref: str) -> dict[str, Any]:
         assert self._sync is not None
-        url = _interpolate(REGISTRY["plans.delete"].path_template, product_ref=product_ref, plan_ref=plan_ref)
+        url = _interpolate(
+            REGISTRY["plans.delete"].path_template, product_ref=product_ref, plan_ref=plan_ref
+        )
         resp = self._sync.send(RequestSpec(method="DELETE", url=url, headers=Headers(), json=None))
         return resp.body
 
@@ -88,7 +96,9 @@ class PlansOperations:
     async def alist(self, product_ref: str) -> list[Plan]:
         assert self._async is not None
         url = _interpolate(REGISTRY["plans.list"].path_template, product_ref=product_ref)
-        resp = await self._async.send(RequestSpec(method="GET", url=url, headers=Headers(), json=None))
+        resp = await self._async.send(
+            RequestSpec(method="GET", url=url, headers=Headers(), json=None)
+        )
         items = resp.body if isinstance(resp.body, list) else resp.body.get("plans", [])
         return [Plan.model_validate(p) for p in items]
 
@@ -104,7 +114,9 @@ class PlansOperations:
         idempotency_key: str | None = None,
     ) -> Plan:
         assert self._async is not None
-        req = CreatePlanRequest(name=name, type=type, price=price, currency=currency, interval=interval)
+        req = CreatePlanRequest(
+            name=name, type=type, price=price, currency=currency, interval=interval
+        )
         url = _interpolate(REGISTRY["plans.create"].path_template, product_ref=product_ref)
         resp = await self._async.send(
             RequestSpec(
@@ -128,8 +140,12 @@ class PlansOperations:
         interval: str | None = None,
     ) -> Plan:
         assert self._async is not None
-        req = UpdatePlanRequest(name=name, type=type, price=price, currency=currency, interval=interval)
-        url = _interpolate(REGISTRY["plans.update"].path_template, product_ref=product_ref, plan_ref=plan_ref)
+        req = UpdatePlanRequest(
+            name=name, type=type, price=price, currency=currency, interval=interval
+        )
+        url = _interpolate(
+            REGISTRY["plans.update"].path_template, product_ref=product_ref, plan_ref=plan_ref
+        )
         resp = await self._async.send(
             RequestSpec(
                 method="PUT",
@@ -142,6 +158,10 @@ class PlansOperations:
 
     async def adelete(self, product_ref: str, plan_ref: str) -> dict[str, Any]:
         assert self._async is not None
-        url = _interpolate(REGISTRY["plans.delete"].path_template, product_ref=product_ref, plan_ref=plan_ref)
-        resp = await self._async.send(RequestSpec(method="DELETE", url=url, headers=Headers(), json=None))
+        url = _interpolate(
+            REGISTRY["plans.delete"].path_template, product_ref=product_ref, plan_ref=plan_ref
+        )
+        resp = await self._async.send(
+            RequestSpec(method="DELETE", url=url, headers=Headers(), json=None)
+        )
         return resp.body

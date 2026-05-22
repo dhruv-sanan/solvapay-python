@@ -12,7 +12,6 @@ import pytest
 from solvapay.exceptions import SolvaPayError
 from solvapay.webhooks.pipeline import WebhookPipeline
 
-
 SECRET = "whsec_test_secret"
 EVENT = {"id": "evt_001", "type": "payment.succeeded", "data": {}}
 
@@ -43,7 +42,9 @@ def test_pipeline_rejects_bad_secret() -> None:
 def test_pipeline_rejects_stale_timestamp() -> None:
     ts = int(time.time()) - 400
     body = json.dumps(EVENT).encode()
-    sig_val = hmac.new(SECRET.encode(), f"{ts}.{body.decode()}".encode(), hashlib.sha256).hexdigest()
+    sig_val = hmac.new(
+        SECRET.encode(), f"{ts}.{body.decode()}".encode(), hashlib.sha256
+    ).hexdigest()
     sig = f"t={ts},v1={sig_val}"
     pipeline = WebhookPipeline([SECRET], max_clock_skew_seconds=300)
     with pytest.raises(SolvaPayError, match="clock skew"):

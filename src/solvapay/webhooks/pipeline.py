@@ -6,8 +6,8 @@ import hashlib
 import hmac
 import json
 import time
-from collections.abc import Sequence
-from typing import Any, Callable
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from solvapay.exceptions import SolvaPayError
 from solvapay.webhooks.envelope import WebhookEnvelope

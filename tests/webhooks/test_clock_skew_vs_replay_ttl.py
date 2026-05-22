@@ -28,7 +28,9 @@ def test_within_skew_but_replayed() -> None:
     sig = _sign_at(body.decode(), ts)
 
     cache = InMemorySeenEventCache()
-    pipeline = WebhookPipeline([SECRET], max_clock_skew_seconds=300, replay_ttl_seconds=600, seen_cache=cache)
+    pipeline = WebhookPipeline(
+        [SECRET], max_clock_skew_seconds=300, replay_ttl_seconds=600, seen_cache=cache
+    )
 
     pipeline.process(body, sig)  # first: OK
     with pytest.raises(SolvaPayError, match="already processed"):

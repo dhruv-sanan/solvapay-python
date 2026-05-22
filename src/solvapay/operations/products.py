@@ -25,7 +25,12 @@ class ProductsOperations:
     def list(self) -> list[Product]:
         assert self._sync is not None
         resp = self._sync.send(
-            RequestSpec(method="GET", url=REGISTRY["products.list"].path_template, headers=Headers(), json=None)
+            RequestSpec(
+                method="GET",
+                url=REGISTRY["products.list"].path_template,
+                headers=Headers(),
+                json=None,
+            )
         )
         items = resp.body if isinstance(resp.body, list) else resp.body.get("products", [])
         return [Product.model_validate(p) for p in items]
@@ -78,7 +83,12 @@ class ProductsOperations:
     async def alist(self) -> list[Product]:
         assert self._async is not None
         resp = await self._async.send(
-            RequestSpec(method="GET", url=REGISTRY["products.list"].path_template, headers=Headers(), json=None)
+            RequestSpec(
+                method="GET",
+                url=REGISTRY["products.list"].path_template,
+                headers=Headers(),
+                json=None,
+            )
         )
         items = resp.body if isinstance(resp.body, list) else resp.body.get("products", [])
         return [Product.model_validate(p) for p in items]
@@ -86,7 +96,9 @@ class ProductsOperations:
     async def aget(self, product_ref: str) -> Product:
         assert self._async is not None
         url = _interpolate(REGISTRY["products.get"].path_template, product_ref=product_ref)
-        resp = await self._async.send(RequestSpec(method="GET", url=url, headers=Headers(), json=None))
+        resp = await self._async.send(
+            RequestSpec(method="GET", url=url, headers=Headers(), json=None)
+        )
         return Product.model_validate(resp.body)
 
     async def acreate(
@@ -107,7 +119,9 @@ class ProductsOperations:
     async def adelete(self, product_ref: str) -> dict[str, Any]:
         assert self._async is not None
         url = _interpolate(REGISTRY["products.delete"].path_template, product_ref=product_ref)
-        resp = await self._async.send(RequestSpec(method="DELETE", url=url, headers=Headers(), json=None))
+        resp = await self._async.send(
+            RequestSpec(method="DELETE", url=url, headers=Headers(), json=None)
+        )
         return resp.body
 
     async def aclone(

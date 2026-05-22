@@ -42,8 +42,10 @@ def test_async_canonical_order() -> None:
 
 
 def test_all_middleware_have_protocol_version_1() -> None:
-    sync, async_t = default_stack(**OPTS)
+    sync, _async_t = default_stack(**OPTS)
     layer: object = sync
     while hasattr(layer, "_inner"):
-        assert getattr(layer, "protocol_version", None) == 1, f"{type(layer)} missing protocol_version=1"
+        assert getattr(layer, "protocol_version", None) == 1, (
+            f"{type(layer)} missing protocol_version=1"
+        )
         layer = layer._inner  # type: ignore[union-attr]

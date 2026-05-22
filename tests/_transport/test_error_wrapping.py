@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from solvapay._transport import Headers, RequestSpec, ResponseMetadata, ResponseSpec
+from solvapay._transport import Headers, RequestSpec
 from solvapay._transport.middleware import (
     ContextPropagatingTransport,
     IdempotencyHeaderTransport,

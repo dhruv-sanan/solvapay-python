@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from solvapay._transport import AsyncTransport, Transport
 from solvapay._transport.httpx_transport import AsyncHttpxTransport, HttpxTransport
 

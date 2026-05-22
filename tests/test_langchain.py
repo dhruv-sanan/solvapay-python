@@ -23,6 +23,7 @@ def _mock_client(
     )
     # checkout for mint when blocked
     from solvapay.models import CheckoutSession
+
     client.checkout.create_session.return_value = CheckoutSession(
         session_id="s", checkout_url=checkout_url or "https://checkout.solvapay.com/x"
     )

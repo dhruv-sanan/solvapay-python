@@ -1,4 +1,4 @@
-"""OpSpec registry + path interpolation (HLD V1.5 locks: OR1–OR6)."""
+"""OpSpec registry + path interpolation (HLD V1.5 locks: OR1-OR6)."""
 
 from __future__ import annotations
 
@@ -59,9 +59,7 @@ REGISTRY: dict[str, OpSpec] = {
         "checkout.create_session", "POST", "/v1/sdk/checkout-sessions", RetrySafety.WITH_KEY
     ),
     # Limits
-    "limits.check": OpSpec(
-        "limits.check", "POST", "/v1/sdk/limits", RetrySafety.ALWAYS
-    ),
+    "limits.check": OpSpec("limits.check", "POST", "/v1/sdk/limits", RetrySafety.ALWAYS),
     # Purchases
     "purchases.cancel": OpSpec(
         "purchases.cancel",
@@ -76,19 +74,13 @@ REGISTRY: dict[str, OpSpec] = {
         RetrySafety.WITH_KEY,
     ),
     # Usage
-    "usage.track": OpSpec(
-        "usage.track", "POST", "/v1/sdk/usages", RetrySafety.NEVER
-    ),
+    "usage.track": OpSpec("usage.track", "POST", "/v1/sdk/usages", RetrySafety.NEVER),
     # Products
-    "products.list": OpSpec(
-        "products.list", "GET", "/v1/sdk/products", RetrySafety.ALWAYS
-    ),
+    "products.list": OpSpec("products.list", "GET", "/v1/sdk/products", RetrySafety.ALWAYS),
     "products.get": OpSpec(
         "products.get", "GET", "/v1/sdk/products/{product_ref}", RetrySafety.ALWAYS
     ),
-    "products.create": OpSpec(
-        "products.create", "POST", "/v1/sdk/products", RetrySafety.WITH_KEY
-    ),
+    "products.create": OpSpec("products.create", "POST", "/v1/sdk/products", RetrySafety.WITH_KEY),
     "products.delete": OpSpec(
         "products.delete", "DELETE", "/v1/sdk/products/{product_ref}", RetrySafety.ALWAYS
     ),
@@ -118,9 +110,7 @@ REGISTRY: dict[str, OpSpec] = {
         RetrySafety.ALWAYS,
     ),
     # Merchant + Platform
-    "merchant.get": OpSpec(
-        "merchant.get", "GET", "/v1/sdk/merchant", RetrySafety.ALWAYS
-    ),
+    "merchant.get": OpSpec("merchant.get", "GET", "/v1/sdk/merchant", RetrySafety.ALWAYS),
     "platform.get_config": OpSpec(
         "platform.get_config", "GET", "/v1/sdk/platform-config", RetrySafety.ALWAYS
     ),

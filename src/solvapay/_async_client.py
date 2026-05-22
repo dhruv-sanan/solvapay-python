@@ -7,32 +7,20 @@ Use `async with AsyncSolvaPay() as sv: ...` for proper teardown.
 from __future__ import annotations
 
 import logging
-import time
 import warnings
 from typing import Any
 
 from solvapay._config import resolve_api_key, resolve_base_url
-from solvapay._http import AsyncHttpClient, _RequestSpec
-from solvapay.exceptions import SolvaPayAPIError
+from solvapay._http import AsyncHttpClient
 from solvapay.models import (
     BalanceResponse,
-    CancelPurchaseRequest,
-    CheckLimitsRequest,
     CheckoutSession,
-    CheckoutSessionRequest,
-    CloneProductRequest,
-    CreateCustomerRequest,
-    CreatePlanRequest,
-    CreateProductRequest,
     Customer,
     LimitResponse,
     Merchant,
     Plan,
     PlatformConfig,
     Product,
-    TrackUsageRequest,
-    UpdateCustomerRequest,
-    UpdatePlanRequest,
 )
 from solvapay.operations.checkout import CheckoutOperations
 from solvapay.operations.customers import CustomersOperations
@@ -205,7 +193,9 @@ class AsyncSolvaPay:
         external_ref: str | None = None,
     ) -> Customer:
         _shim_warn("sv.customers.aupdate()")
-        return await self.customers.aupdate(customer_ref, email=email, name=name, external_ref=external_ref)
+        return await self.customers.aupdate(
+            customer_ref, email=email, name=name, external_ref=external_ref
+        )
 
     async def get_customer_balance(self, customer_ref: str) -> BalanceResponse:
         _shim_warn("sv.customers.abalance()")
@@ -219,7 +209,9 @@ class AsyncSolvaPay:
         idempotency_key: str | None = None,
     ) -> dict[str, Any]:
         _shim_warn("sv.purchases.acancel()")
-        return await self.purchases.acancel(purchase_ref, reason=reason, idempotency_key=idempotency_key)
+        return await self.purchases.acancel(
+            purchase_ref, reason=reason, idempotency_key=idempotency_key
+        )
 
     async def reactivate_purchase(
         self, purchase_ref: str, *, idempotency_key: str | None = None
@@ -251,7 +243,9 @@ class AsyncSolvaPay:
         self, product_ref: str, *, new_name: str, idempotency_key: str | None = None
     ) -> Product:
         _shim_warn("sv.products.aclone()")
-        return await self.products.aclone(product_ref, new_name=new_name, idempotency_key=idempotency_key)
+        return await self.products.aclone(
+            product_ref, new_name=new_name, idempotency_key=idempotency_key
+        )
 
     async def list_plans(self, product_ref: str) -> list[Plan]:
         _shim_warn("sv.plans.alist()")
@@ -292,7 +286,13 @@ class AsyncSolvaPay:
     ) -> Plan:
         _shim_warn("sv.plans.aupdate()")
         return await self.plans.aupdate(
-            product_ref, plan_ref, name=name, type=type, price=price, currency=currency, interval=interval
+            product_ref,
+            plan_ref,
+            name=name,
+            type=type,
+            price=price,
+            currency=currency,
+            interval=interval,
         )
 
     async def delete_plan(self, product_ref: str, plan_ref: str) -> dict[str, Any]:

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import dataclasses
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, Iterable, Mapping, Protocol, runtime_checkable
+from typing import Any, ClassVar, Protocol, runtime_checkable
 
 
 class Headers:

@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from solvapay._transport import Headers, RequestSpec, ResponseMetadata, ResponseSpec
+from solvapay._transport import Headers, ResponseMetadata, ResponseSpec
 from solvapay._transport.middleware import (
     AsyncContextPropagatingTransport,
     AsyncIdempotencyHeaderTransport,

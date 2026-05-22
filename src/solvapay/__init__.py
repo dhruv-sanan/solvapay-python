@@ -65,6 +65,7 @@ stable(WebhookEvent)
 deprecated(removed_in="2.0")(SolvaPayAPIError)
 
 __all__ = [
+    "MANIFEST",
     "APIConnectionError",
     "APIError",
     "APIServerError",
@@ -77,7 +78,6 @@ __all__ = [
     "CustomerDeleted",
     "CustomerUpdated",
     "InvalidRequestError",
-    "MANIFEST",
     "Merchant",
     "NotFoundError",
     "PaymentFailed",
@@ -105,4 +105,4 @@ __all__ = [
     "stable",
     "verify_webhook",
 ]
-__version__ = "0.7.2"
+__version__ = "0.8.0"

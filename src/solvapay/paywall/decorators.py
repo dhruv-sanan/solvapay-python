@@ -21,10 +21,12 @@ def require(
     client: object | None = None,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Decorate a sync function with a SolvaPay paywall check."""
+
     def decorator(fn: Callable[P, R]) -> Callable[P, R]:
         @wraps(fn)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             from solvapay.client import SolvaPay
+
             sv = client if client is not None else SolvaPay()
             pw = Paywall(client=sv, product=product, plan=plan, customer_ref_arg=customer_ref_arg)
             pw.gate(*args, **kwargs)
@@ -88,8 +90,8 @@ def payable_tool(
 
         @wraps(fn)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            from solvapay.client import SolvaPay
             from solvapay._async_client import AsyncSolvaPay
+            from solvapay.client import SolvaPay
 
             customer_ref = kwargs.get(customer_ref_arg)
             if not isinstance(customer_ref, str):

@@ -68,9 +68,8 @@ class LoggingTransport:
         except Exception as exc:
             raise _wrap_non_sdk(exc) from exc
         elapsed = int((time.perf_counter() - t0) * 1000)
-        request_id = (
-            resp.metadata.headers.get("x-request-id")
-            or resp.metadata.headers.get("x-correlation-id")
+        request_id = resp.metadata.headers.get("x-request-id") or resp.metadata.headers.get(
+            "x-correlation-id"
         )
         self._logger.info(
             "%s %s → %d (%dms)",
@@ -172,9 +171,8 @@ class AsyncLoggingTransport:
         except Exception as exc:
             raise _wrap_non_sdk(exc) from exc
         elapsed = int((time.perf_counter() - t0) * 1000)
-        request_id = (
-            resp.metadata.headers.get("x-request-id")
-            or resp.metadata.headers.get("x-correlation-id")
+        request_id = resp.metadata.headers.get("x-request-id") or resp.metadata.headers.get(
+            "x-correlation-id"
         )
         self._logger.info(
             "%s %s → %d (%dms)",

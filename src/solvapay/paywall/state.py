@@ -13,11 +13,11 @@ from solvapay.paywall_state import (
 )
 
 __all__ = [
-    "PaywallState",
     "GateDecision",
+    "PaywallState",
+    "build_gate_message",
+    "build_nudge_message",
     "classify_state",
     "decide",
     "gate",
-    "build_gate_message",
-    "build_nudge_message",
 ]

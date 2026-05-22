@@ -15,13 +15,11 @@ import functools
 import inspect
 from typing import TYPE_CHECKING, Any, Literal
 
-from solvapay.exceptions import SolvaPayError
-from solvapay.paywall.core import AsyncPaywall, Paywall, PaywallRequired
+from solvapay.paywall.core import Paywall, PaywallRequired
 from solvapay.paywall.meta import PayableToolMeta
 
 if TYPE_CHECKING:
-    from solvapay._async_client import AsyncSolvaPay
-    from solvapay.client import SolvaPay
+    pass
 
 
 def payable_tool(
@@ -45,8 +43,8 @@ def payable_tool(
 
         @functools.wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            from solvapay.client import SolvaPay as _SolvaPay
             from solvapay._async_client import AsyncSolvaPay as _AsyncSolvaPay
+            from solvapay.client import SolvaPay as _SolvaPay
 
             sv = client
             if sv is None or (not isinstance(sv, _SolvaPay) and not isinstance(sv, _AsyncSolvaPay)):
@@ -82,9 +80,7 @@ def register_payable_tool_fastmcp(mcp_server: Any, fn: Any) -> None:
     try:
         import fastmcp  # noqa: F401
     except ImportError as exc:
-        raise ImportError(
-            "fastmcp is required: pip install 'solvapay-python[mcp]'"
-        ) from exc
+        raise ImportError("fastmcp is required: pip install 'solvapay-python[mcp]'") from exc
 
     mcp_server.tool()(fn)
 

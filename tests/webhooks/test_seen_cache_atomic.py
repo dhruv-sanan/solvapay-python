@@ -49,5 +49,6 @@ def test_expired_entry_can_be_reclaimed() -> None:
     # Claim with ttl=0 to simulate immediate expiry
     cache.try_claim("evt_exp", 0)
     import time
+
     time.sleep(0.01)
     assert cache.try_claim("evt_exp", 600) is True
