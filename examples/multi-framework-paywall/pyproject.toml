@@ -1,0 +1,9 @@
+[project]
+name = "multi-framework-paywall"
+version = "0.1.0"
+description = "One tool, three runtimes, one paywall — solvapay-python v0.8 demo"
+requires-python = ">=3.10"
+dependencies = [
+    "solvapay-python[mcp,langchain] @ git+https://github.com/dhruv-sanan/solvapay-python@v0.8.0",
+    "python-dotenv>=1.0",
+]
