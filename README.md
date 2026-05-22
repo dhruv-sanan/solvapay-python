@@ -1,57 +1,54 @@
 # solvapay-python
 
 Community Python SDK for [SolvaPay](https://solvapay.com) — agentic payment rails.  
-`pip install solvapay-python` · Python 3.10+ · [PyPI](https://pypi.org/project/solvapay-python/)
+`pip install solvapay-python` · Python 3.10+ · Fully typed (py.typed) · [PyPI](https://pypi.org/project/solvapay-python/)
 
 [![CI](https://github.com/dhruv-sanan/solvapay-python/actions/workflows/ci.yml/badge.svg)](https://github.com/dhruv-sanan/solvapay-python/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/solvapay-python.svg)](https://pypi.org/project/solvapay-python/)
 
 ---
 
-## AI-agent ecosystems
+## One tool. Three runtimes. One paywall.
 
-### MCP (Claude Desktop / Claude Code)
+`@payable_tool` stamps a function with payment metadata once. Any framework reads it — no per-framework wiring.
 
 ```python
-from solvapay.adapters.mcp import payable_tool, register_payable_tool_fastmcp
-from fastmcp import FastMCP
-
-mcp = FastMCP("My App")
+# Define once
+from solvapay.adapters.mcp import payable_tool
 
 @payable_tool(product="prd_search")
 def web_search(*, customer_ref: str, query: str) -> list[str]:
     """Search the web."""
     return do_real_search(query)
+```
 
+```python
+# Run on MCP (Claude Desktop / Claude Code)
+from solvapay.adapters.mcp import register_payable_tool_fastmcp
+from fastmcp import FastMCP
+
+mcp = FastMCP("My App")
 register_payable_tool_fastmcp(mcp, web_search)
 mcp.run()
 ```
 
-`pip install 'solvapay-python[mcp]'`
-
-### LangChain
-
 ```python
+# Run on LangChain
 from solvapay.adapters.langchain import monetize_tool
-from langchain_core.tools import Tool
 
-raw = Tool.from_function(name="search", func=do_search, description="Search the web.")
-paid = monetize_tool(raw, product="prd_search")
-# Returns {"paywall_required": True, "checkout_url": "..."} on block
+paid = monetize_tool(web_search, product="prd_search")
+# Blocked callers get {"paywall_required": True, "checkout_url": "..."}
 ```
 
-`pip install 'solvapay-python[langchain]'`
-
-### Raw async
-
 ```python
-from solvapay import AsyncSolvaPay
-
+# Run raw async
 async with AsyncSolvaPay() as sv:
     limits = await sv.limits.acheck(customer_ref="cus_123", product_ref="prd_search")
     if limits.within_limits:
-        result = await my_tool(customer_ref="cus_123")
+        result = await web_search(customer_ref="cus_123", query="hello")
 ```
+
+`pip install 'solvapay-python[mcp]'` · `pip install 'solvapay-python[langchain]'`
 
 ---
 
@@ -67,23 +64,31 @@ from solvapay import SolvaPay
 
 sv = SolvaPay()
 
-# Resource-namespace API (v0.8+)
+# Ensure customer exists
 customer_ref = sv.customers.ensure("user_alice")
+
+# Create checkout session
 session = sv.checkout.create_session(customer_ref=customer_ref, product_ref="prd_0QKI8NHF")
 print(session.checkout_url)
 
+# Check limits and track usage
 limits = sv.limits.check(customer_ref=customer_ref, product_ref="prd_0QKI8NHF")
 if limits.within_limits:
-    sv.usage.track(customer_ref=customer_ref, product_ref="prd_0QKI8NHF",
-                   meter_name="requests", units=1.0)
+    sv.usage.track(
+        customer_ref=customer_ref,
+        product_ref="prd_0QKI8NHF",
+        meter_name="requests",
+        units=1.0,
+        idempotency_key="req_abc123",   # idempotent — safe to retry
+    )
 ```
 
 ---
 
 ## Stable API
 
-| Namespace | Sync methods | Async methods |
-|-----------|-------------|---------------|
+| Namespace | Sync | Async |
+|-----------|------|-------|
 | `sv.customers` | `ensure`, `get`, `update`, `balance` | `aensure`, `aget`, `aupdate`, `abalance` |
 | `sv.checkout` | `create_session` | `acreate_session` |
 | `sv.limits` | `check` | `acheck` |
@@ -95,38 +100,76 @@ if limits.within_limits:
 
 ---
 
+## Idempotency
+
+All mutating ops accept `idempotency_key`. Use `solvapay.idempotency.from_payload` to derive deterministic keys from request content:
+
+```python
+from solvapay.idempotency import from_payload
+
+key = from_payload("track_usage", customer_ref, product_ref, "requests", units)
+sv.usage.track(..., idempotency_key=key)   # retry-safe
+```
+
+Retried POSTs **must reuse the same key**. Key should change only when the logical request changes.
+
+---
+
 ## Errors and retries
 
 ```python
-from solvapay import AuthenticationError, RateLimitError, SolvaPayError
+from solvapay import (
+    AuthenticationError, PermissionError, NotFoundError,
+    RateLimitError, InvalidRequestError, APIServerError,
+    APIConnectionError, APITimeoutError, SolvaPayError,
+)
 
 try:
     sv.customers.ensure("cus_123")
 except AuthenticationError:
-    print("Check your API key")
+    ...  # 401 — bad key
 except RateLimitError as e:
-    print(f"Rate limited — retry after {e.retry_after}s")
+    ...  # 429 — retry after e.retry_after seconds
+except APIConnectionError:
+    ...  # network failure
+except APITimeoutError:
+    ...  # request timed out (default 30s)
 except SolvaPayError as e:
-    print(f"SDK error: {e}")
+    ...  # catch-all
 ```
 
-No built-in retries by design. Layer `tenacity` manually; `solvapay[retry]` RetryTransport coming v0.9.
+No built-in retries by design. Layer `tenacity` manually. `solvapay[retry]` RetryTransport ships in v0.9.
 
 ---
 
 ## Webhooks
 
 ```python
+import os
 from solvapay.webhooks import WebhookPipeline
 
 pipeline = WebhookPipeline(
     [os.environ["SOLVAPAY_WEBHOOK_SECRET"]],
-    max_clock_skew_seconds=300,   # TWO knobs (HLD V1.7)
+    max_clock_skew_seconds=300,
     replay_ttl_seconds=600,
 )
 
 envelope = pipeline.process(body=request.body, signature=request.headers["sv-signature"])
-print(envelope.event["type"])
+```
+
+**Typed events** — discriminated union over 13 event types:
+
+```python
+from solvapay import WebhookEvent, PurchaseCreated, PaymentSucceeded
+from pydantic import TypeAdapter
+
+event = TypeAdapter(WebhookEvent).validate_python(envelope.event)
+
+match event:
+    case PurchaseCreated():
+        print(f"New purchase: {event.data['purchaseRef']}")
+    case PaymentSucceeded():
+        print(f"Payment: {event.data['amount']}")
 ```
 
 ---
@@ -145,12 +188,35 @@ try:
 except PaywallRequired as e:
     print(f"Upgrade at: {e.checkout_url}")
     if e.checkout_mint_error:
-        print(f"Mint failed: {e.checkout_mint_error}")
+        print(f"Could not auto-mint checkout URL: {e.checkout_mint_error}")
+```
+
+Async version: `@require_async`. For MCP/LangChain: `@payable_tool` (see above).
+
+---
+
+## Async
+
+`AsyncSolvaPay` is the supported async pattern. Always use `async with` — it guarantees `aclose()`:
+
+```python
+from solvapay import AsyncSolvaPay
+
+async with AsyncSolvaPay() as sv:
+    customer_ref = await sv.customers.aensure("user_alice")
+    limits = await sv.limits.acheck(customer_ref=customer_ref, product_ref="prd_0QKI8NHF")
+    if limits.within_limits:
+        await sv.usage.atrack(
+            customer_ref=customer_ref,
+            product_ref="prd_0QKI8NHF",
+            meter_name="requests",
+            units=1.0,
+        )
 ```
 
 ---
 
-## Migrating from v0.7.x flat API
+## Migrating from v0.7.x
 
 Flat methods still work but emit `DeprecationWarning`. Removed in v2.0.
 
@@ -174,8 +240,8 @@ Flat methods still work but emit `DeprecationWarning`. Removed in v2.0.
 
 ```bash
 pip install solvapay-python                   # core
-pip install 'solvapay-python[mcp]'            # + FastMCP adapter
-pip install 'solvapay-python[langchain]'      # + LangChain adapter
+pip install 'solvapay-python[mcp]'            # + FastMCP adapter (FastMCP ≥0.4)
+pip install 'solvapay-python[langchain]'      # + LangChain adapter (langchain-core ≥0.3)
 pip install 'solvapay-python[fastapi]'        # + FastAPI webhook router
 ```
 
@@ -193,14 +259,24 @@ pip install 'solvapay-python[fastapi]'        # + FastAPI webhook router
 
 | Path | What |
 |------|------|
-| `examples/multi-framework-paywall/` | One tool → MCP + LangChain + async (v0.8 moat demo) |
-| `examples/marketplace/` | Streamlit AI-agent marketplace with real SolvaPay sandbox |
+| `examples/multi-framework-paywall/` | One `@payable_tool` → FastMCP + LangChain + raw async |
+| `examples/marketplace/` | Streamlit AI-agent marketplace — real SolvaPay sandbox + Gemini LLM |
 | `examples/fastmcp-paywall/` | FastMCP server gated by `@paywall.require` |
 | `examples/langchain-paywall/` | LangChain agent with `monetize_tool` |
 
 ---
 
+## Roadmap
+
+| Version | Theme |
+|---------|-------|
+| v0.8 ✅ | V1 architecture spine — Transport kernel, OpSpec registry, paywall/webhook packages, `@payable_tool`, stability manifest, layer DAG CI gate |
+| v0.9 | Production polish — API-version pinning, idempotency TTL, `RetryTransport`, `RecordingTransport`, contract tests, lint automation, doc site (MkDocs Material), supply-chain hygiene |
+| v1.0 | Gated on founder signal — OpenAPI-generated models, full secret rotation, production hardening |
+
+---
+
 ## Status
 
-**v0.8.0** — V1 architecture spine + AI-agent moat + governance scaffold.  
+**v0.8.0** — V1 architecture spine + AI-agent moat. `mypy --strict` clean (43 files). 261 tests. 89% line coverage.  
 Community SDK, not official. Proposal: [solvapay/solvapay-sdk#187](https://github.com/solvapay/solvapay-sdk/issues/187).
