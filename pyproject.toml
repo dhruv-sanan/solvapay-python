@@ -26,12 +26,13 @@ classifiers = [
 ]
 dependencies = [
     "httpx>=0.27",
-    "pydantic>=2.5",
+    "pydantic>=2.6,<2.13",
 ]
 
 [project.optional-dependencies]
 fastapi = ["fastapi>=0.110"]
-langchain = ["langchain-core>=0.3,<0.4"]
+langchain = ["langchain-core>=0.3"]
+mcp = ["fastmcp>=0.4,<0.5"]
 
 [project.urls]
 Homepage = "https://github.com/dhruv-sanan/solvapay-python"
