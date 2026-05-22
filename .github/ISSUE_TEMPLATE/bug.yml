@@ -1,0 +1,27 @@
+name: Bug Report
+description: Something broken in the SDK
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Please fill in the details below.
+  - type: input
+    id: version
+    attributes:
+      label: SDK version
+      placeholder: "0.8.0"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you expect vs what actually happened?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal repro
+      description: Minimal Python snippet to reproduce
+      render: python
