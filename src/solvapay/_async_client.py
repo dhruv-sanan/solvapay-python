@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import time
+import warnings
 from typing import Any
 
 from solvapay._config import resolve_api_key, resolve_base_url
@@ -33,10 +34,36 @@ from solvapay.models import (
     UpdateCustomerRequest,
     UpdatePlanRequest,
 )
+from solvapay.operations.checkout import CheckoutOperations
+from solvapay.operations.customers import CustomersOperations
+from solvapay.operations.limits import LimitsOperations
+from solvapay.operations.merchant import MerchantOperations
+from solvapay.operations.plans import PlansOperations
+from solvapay.operations.products import ProductsOperations
+from solvapay.operations.purchases import PurchasesOperations
+from solvapay.operations.usage import UsageOperations
+
+
+def _shim_warn(new: str) -> None:
+    warnings.warn(
+        f"Flat method deprecated; use {new} instead",
+        DeprecationWarning,
+        stacklevel=3,
+    )
 
 
 class AsyncSolvaPay:
     """Async SolvaPay API client.
+
+    Resource namespaces (v0.8+):
+        sv.customers.aensure / aget / aupdate / abalance
+        sv.checkout.acreate_session
+        sv.limits.acheck
+        sv.purchases.acancel / areactivate
+        sv.usage.atrack
+        sv.products.alist / aget / acreate / adelete / aclone
+        sv.plans.alist / acreate / aupdate / adelete
+        sv.merchant.aget / aget_platform_config
 
     Args:
         api_key: SolvaPay secret key. Falls back to SOLVAPAY_SECRET_KEY env var.
@@ -46,7 +73,7 @@ class AsyncSolvaPay:
 
     Example:
         >>> async with AsyncSolvaPay() as sv:
-        ...     session = await sv.create_checkout_session(
+        ...     session = await sv.checkout.acreate_session(
         ...         customer_ref="cus_123", product_ref="prd_0QKI8NHF"
         ...     )
     """
@@ -65,6 +92,16 @@ class AsyncSolvaPay:
             timeout=timeout,
             logger=logger,
         )
+        # Eager namespace construction (HLD RN1).
+        _t = self._http._transport
+        self.customers = CustomersOperations(sync_transport=None, async_transport=_t)
+        self.checkout = CheckoutOperations(sync_transport=None, async_transport=_t)
+        self.limits = LimitsOperations(sync_transport=None, async_transport=_t)
+        self.purchases = PurchasesOperations(sync_transport=None, async_transport=_t)
+        self.usage = UsageOperations(sync_transport=None, async_transport=_t)
+        self.products = ProductsOperations(sync_transport=None, async_transport=_t)
+        self.plans = PlansOperations(sync_transport=None, async_transport=_t)
+        self.merchant = MerchantOperations(sync_transport=None, async_transport=_t)
 
     async def aclose(self) -> None:
         await self._http.aclose()
@@ -75,6 +112,8 @@ class AsyncSolvaPay:
     async def __aexit__(self, *_: object) -> None:
         await self.aclose()
 
+    # ── Deprecated flat shims — removed in v2.0 ──
+
     async def create_checkout_session(
         self,
         *,
@@ -84,21 +123,14 @@ class AsyncSolvaPay:
         return_url: str | None = None,
         idempotency_key: str | None = None,
     ) -> CheckoutSession:
-        req = CheckoutSessionRequest(
+        _shim_warn("sv.checkout.acreate_session()")
+        return await self.checkout.acreate_session(
             customer_ref=customer_ref,
             product_ref=product_ref,
             plan_ref=plan_ref,
             return_url=return_url,
+            idempotency_key=idempotency_key,
         )
-        data = await self._http.send(
-            _RequestSpec(
-                "POST",
-                "/v1/sdk/checkout-sessions",
-                json=req.model_dump(by_alias=True, exclude_none=True),
-                idempotency_key=idempotency_key,
-            )
-        )
-        return CheckoutSession.model_validate(data)
 
     async def ensure_customer(
         self,
@@ -109,35 +141,14 @@ class AsyncSolvaPay:
         name: str | None = None,
         idempotency_key: str | None = None,
     ) -> str:
-        lookup_ref = external_ref or customer_ref
-        try:
-            existing = await self._http.send(
-                _RequestSpec("GET", "/v1/sdk/customers", params={"externalRef": lookup_ref})
-            )
-            ref = existing.get("reference") or existing.get("customerRef")
-            if ref:
-                return str(ref)
-        except SolvaPayAPIError as exc:
-            if exc.status_code != 404:
-                raise
-
-        req = CreateCustomerRequest(
-            email=email or f"{customer_ref}-{int(time.time())}@auto-created.local",
-            external_ref=lookup_ref,
+        _shim_warn("sv.customers.aensure()")
+        return await self.customers.aensure(
+            customer_ref,
+            external_ref,
+            email=email,
             name=name,
+            idempotency_key=idempotency_key,
         )
-        created = await self._http.send(
-            _RequestSpec(
-                "POST",
-                "/v1/sdk/customers",
-                json=req.model_dump(by_alias=True, exclude_none=True),
-                idempotency_key=idempotency_key,
-            )
-        )
-        ref = created.get("reference") or created.get("customerRef")
-        if not ref:
-            raise SolvaPayAPIError(200, f"customer create returned no reference: {created!r}")
-        return str(ref)
 
     async def get_customer(
         self,
@@ -146,19 +157,8 @@ class AsyncSolvaPay:
         external_ref: str | None = None,
         email: str | None = None,
     ) -> Customer:
-        if customer_ref:
-            data = await self._http.send(_RequestSpec("GET", f"/v1/sdk/customers/{customer_ref}"))
-        elif external_ref:
-            data = await self._http.send(
-                _RequestSpec("GET", "/v1/sdk/customers", params={"externalRef": external_ref})
-            )
-        elif email:
-            data = await self._http.send(
-                _RequestSpec("GET", "/v1/sdk/customers", params={"email": email})
-            )
-        else:
-            raise ValueError("Must provide customer_ref, external_ref, or email")
-        return Customer.model_validate(data)
+        _shim_warn("sv.customers.aget()")
+        return await self.customers.aget(customer_ref, external_ref=external_ref, email=email)
 
     async def check_limits(
         self,
@@ -169,19 +169,14 @@ class AsyncSolvaPay:
         meter_name: str | None = None,
         usage_type: str | None = None,
     ) -> LimitResponse:
-        req = CheckLimitsRequest(
+        _shim_warn("sv.limits.acheck()")
+        return await self.limits.acheck(
             customer_ref=customer_ref,
             product_ref=product_ref,
             plan_ref=plan_ref,
             meter_name=meter_name,
             usage_type=usage_type,
         )
-        data = await self._http.send(
-            _RequestSpec(
-                "POST", "/v1/sdk/limits", json=req.model_dump(by_alias=True, exclude_none=True)
-            )
-        )
-        return LimitResponse.model_validate(data)
 
     async def track_usage(
         self,
@@ -192,20 +187,13 @@ class AsyncSolvaPay:
         units: float,
         idempotency_key: str | None = None,
     ) -> dict[str, Any]:
-        """Record usage against a meter. Maps to POST /v1/sdk/usages."""
-        req = TrackUsageRequest(
+        _shim_warn("sv.usage.atrack()")
+        return await self.usage.atrack(
             customer_ref=customer_ref,
             product_ref=product_ref,
             meter_name=meter_name,
             units=units,
-        )
-        return await self._http.send(
-            _RequestSpec(
-                "POST",
-                "/v1/sdk/usages",
-                json=req.model_dump(by_alias=True, exclude_none=True),
-                idempotency_key=idempotency_key,
-            )
+            idempotency_key=idempotency_key,
         )
 
     async def update_customer(
@@ -216,23 +204,12 @@ class AsyncSolvaPay:
         name: str | None = None,
         external_ref: str | None = None,
     ) -> Customer:
-        """Update customer fields. Maps to PATCH /v1/sdk/customers/{ref}."""
-        req = UpdateCustomerRequest(email=email, name=name, external_ref=external_ref)
-        data = await self._http.send(
-            _RequestSpec(
-                "PATCH",
-                f"/v1/sdk/customers/{customer_ref}",
-                json=req.model_dump(by_alias=True, exclude_none=True),
-            )
-        )
-        return Customer.model_validate(data)
+        _shim_warn("sv.customers.aupdate()")
+        return await self.customers.aupdate(customer_ref, email=email, name=name, external_ref=external_ref)
 
     async def get_customer_balance(self, customer_ref: str) -> BalanceResponse:
-        """Get credit balance for a customer. Maps to GET /v1/sdk/customers/{ref}/balance."""
-        data = await self._http.send(
-            _RequestSpec("GET", f"/v1/sdk/customers/{customer_ref}/balance")
-        )
-        return BalanceResponse.model_validate(data)
+        _shim_warn("sv.customers.abalance()")
+        return await self.customers.abalance(customer_ref)
 
     async def cancel_purchase(
         self,
@@ -241,83 +218,44 @@ class AsyncSolvaPay:
         reason: str | None = None,
         idempotency_key: str | None = None,
     ) -> dict[str, Any]:
-        """Cancel a purchase. Maps to POST /v1/sdk/purchases/{ref}/cancel."""
-        req = CancelPurchaseRequest(reason=reason)
-        return await self._http.send(
-            _RequestSpec(
-                "POST",
-                f"/v1/sdk/purchases/{purchase_ref}/cancel",
-                json=req.model_dump(by_alias=True, exclude_none=True),
-                idempotency_key=idempotency_key,
-            )
-        )
+        _shim_warn("sv.purchases.acancel()")
+        return await self.purchases.acancel(purchase_ref, reason=reason, idempotency_key=idempotency_key)
 
     async def reactivate_purchase(
         self, purchase_ref: str, *, idempotency_key: str | None = None
     ) -> dict[str, Any]:
-        """Reactivate a cancelled purchase. Maps to POST /v1/sdk/purchases/{ref}/reactivate."""
-        return await self._http.send(
-            _RequestSpec(
-                "POST",
-                f"/v1/sdk/purchases/{purchase_ref}/reactivate",
-                idempotency_key=idempotency_key,
-            )
-        )
-
-    # --- Admin: Products ---
+        _shim_warn("sv.purchases.areactivate()")
+        return await self.purchases.areactivate(purchase_ref, idempotency_key=idempotency_key)
 
     async def list_products(self) -> list[Product]:
-        """List all products. Maps to GET /v1/sdk/products."""
-        data = await self._http.send(_RequestSpec("GET", "/v1/sdk/products"))
-        items: list[Any] = data if isinstance(data, list) else data.get("products", [])
-        return [Product.model_validate(p) for p in items]
+        _shim_warn("sv.products.alist()")
+        return await self.products.alist()
 
     async def get_product(self, product_ref: str) -> Product:
-        """Get a product by ref. Maps to GET /v1/sdk/products/{ref}."""
-        data = await self._http.send(_RequestSpec("GET", f"/v1/sdk/products/{product_ref}"))
-        return Product.model_validate(data)
+        _shim_warn("sv.products.aget()")
+        return await self.products.aget(product_ref)
 
     async def create_product(
         self, *, name: str, type: str, default_currency: str, idempotency_key: str | None = None
     ) -> Product:
-        """Create a product. Maps to POST /v1/sdk/products."""
-        req = CreateProductRequest(name=name, type=type, default_currency=default_currency)
-        data = await self._http.send(
-            _RequestSpec(
-                "POST",
-                "/v1/sdk/products",
-                json=req.model_dump(by_alias=True, exclude_none=True),
-                idempotency_key=idempotency_key,
-            )
+        _shim_warn("sv.products.acreate()")
+        return await self.products.acreate(
+            name=name, type=type, default_currency=default_currency, idempotency_key=idempotency_key
         )
-        return Product.model_validate(data)
 
     async def delete_product(self, product_ref: str) -> dict[str, Any]:
-        """Delete a product. Maps to DELETE /v1/sdk/products/{ref}."""
-        return await self._http.send(_RequestSpec("DELETE", f"/v1/sdk/products/{product_ref}"))
+        _shim_warn("sv.products.adelete()")
+        return await self.products.adelete(product_ref)
 
     async def clone_product(
         self, product_ref: str, *, new_name: str, idempotency_key: str | None = None
     ) -> Product:
-        """Clone a product with a new name. Maps to POST /v1/sdk/products/{ref}/clone."""
-        req = CloneProductRequest(new_name=new_name)
-        data = await self._http.send(
-            _RequestSpec(
-                "POST",
-                f"/v1/sdk/products/{product_ref}/clone",
-                json=req.model_dump(by_alias=True, exclude_none=True),
-                idempotency_key=idempotency_key,
-            )
-        )
-        return Product.model_validate(data)
-
-    # --- Admin: Plans ---
+        _shim_warn("sv.products.aclone()")
+        return await self.products.aclone(product_ref, new_name=new_name, idempotency_key=idempotency_key)
 
     async def list_plans(self, product_ref: str) -> list[Plan]:
-        """List plans for a product. Maps to GET /v1/sdk/products/{ref}/plans."""
-        data = await self._http.send(_RequestSpec("GET", f"/v1/sdk/products/{product_ref}/plans"))
-        items: list[Any] = data if isinstance(data, list) else data.get("plans", [])
-        return [Plan.model_validate(p) for p in items]
+        _shim_warn("sv.plans.alist()")
+        return await self.plans.alist(product_ref)
 
     async def create_plan(
         self,
@@ -330,19 +268,16 @@ class AsyncSolvaPay:
         interval: str | None = None,
         idempotency_key: str | None = None,
     ) -> Plan:
-        """Create a plan for a product. Maps to POST /v1/sdk/products/{ref}/plans."""
-        req = CreatePlanRequest(
-            name=name, type=type, price=price, currency=currency, interval=interval
+        _shim_warn("sv.plans.acreate()")
+        return await self.plans.acreate(
+            product_ref,
+            name=name,
+            type=type,
+            price=price,
+            currency=currency,
+            interval=interval,
+            idempotency_key=idempotency_key,
         )
-        data = await self._http.send(
-            _RequestSpec(
-                "POST",
-                f"/v1/sdk/products/{product_ref}/plans",
-                json=req.model_dump(by_alias=True, exclude_none=True),
-                idempotency_key=idempotency_key,
-            )
-        )
-        return Plan.model_validate(data)
 
     async def update_plan(
         self,
@@ -355,33 +290,19 @@ class AsyncSolvaPay:
         currency: str | None = None,
         interval: str | None = None,
     ) -> Plan:
-        """Update a plan. Maps to PUT /v1/sdk/products/{ref}/plans/{ref}."""
-        req = UpdatePlanRequest(
-            name=name, type=type, price=price, currency=currency, interval=interval
+        _shim_warn("sv.plans.aupdate()")
+        return await self.plans.aupdate(
+            product_ref, plan_ref, name=name, type=type, price=price, currency=currency, interval=interval
         )
-        data = await self._http.send(
-            _RequestSpec(
-                "PUT",
-                f"/v1/sdk/products/{product_ref}/plans/{plan_ref}",
-                json=req.model_dump(by_alias=True, exclude_none=True),
-            )
-        )
-        return Plan.model_validate(data)
 
     async def delete_plan(self, product_ref: str, plan_ref: str) -> dict[str, Any]:
-        """Delete a plan. Maps to DELETE /v1/sdk/products/{ref}/plans/{ref}."""
-        return await self._http.send(
-            _RequestSpec("DELETE", f"/v1/sdk/products/{product_ref}/plans/{plan_ref}")
-        )
-
-    # --- Admin: Merchant + Platform ---
+        _shim_warn("sv.plans.adelete()")
+        return await self.plans.adelete(product_ref, plan_ref)
 
     async def get_merchant(self) -> Merchant:
-        """Get merchant account details. Maps to GET /v1/sdk/merchant."""
-        data = await self._http.send(_RequestSpec("GET", "/v1/sdk/merchant"))
-        return Merchant.model_validate(data)
+        _shim_warn("sv.merchant.aget()")
+        return await self.merchant.aget()
 
     async def get_platform_config(self) -> PlatformConfig:
-        """Get platform-level configuration. Maps to GET /v1/sdk/platform-config."""
-        data = await self._http.send(_RequestSpec("GET", "/v1/sdk/platform-config"))
-        return PlatformConfig.model_validate(data)
+        _shim_warn("sv.merchant.aget_platform_config()")
+        return await self.merchant.aget_platform_config()

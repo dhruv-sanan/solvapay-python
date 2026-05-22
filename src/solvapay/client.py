@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
+import warnings
 from typing import Any
 
 from solvapay._config import resolve_api_key, resolve_base_url
@@ -29,10 +30,39 @@ from solvapay.models import (
     UpdateCustomerRequest,
     UpdatePlanRequest,
 )
+from solvapay.operations.checkout import CheckoutOperations
+from solvapay.operations.customers import CustomersOperations
+from solvapay.operations.limits import LimitsOperations
+from solvapay.operations.merchant import MerchantOperations
+from solvapay.operations.plans import PlansOperations
+from solvapay.operations.products import ProductsOperations
+from solvapay.operations.purchases import PurchasesOperations
+from solvapay.operations.usage import UsageOperations
+
+
+def _shim_warn(new: str) -> None:
+    warnings.warn(
+        f"Flat method deprecated; use {new} instead",
+        DeprecationWarning,
+        stacklevel=3,
+    )
 
 
 class SolvaPay:
     """Synchronous SolvaPay API client.
+
+    Resource namespaces (v0.8+):
+        sv.customers.ensure / get / update / balance
+        sv.checkout.create_session
+        sv.limits.check
+        sv.purchases.cancel / reactivate
+        sv.usage.track
+        sv.products.list / get / create / delete / clone
+        sv.plans.list / create / update / delete
+        sv.merchant.get / get_platform_config
+
+    Flat methods (deprecated, removed in 2.0):
+        sv.ensure_customer, sv.create_checkout_session, etc.
 
     Args:
         api_key: SolvaPay secret key. Falls back to SOLVAPAY_SECRET_KEY env var.
@@ -42,9 +72,10 @@ class SolvaPay:
 
     Example:
         >>> from solvapay import SolvaPay
-        >>> sv = SolvaPay()  # reads SOLVAPAY_SECRET_KEY
-        >>> session = sv.create_checkout_session(
-        ...     customer_ref="cus_123", product_ref="prd_0QKI8NHF"
+        >>> sv = SolvaPay()
+        >>> customer_ref = sv.customers.ensure("user_123")
+        >>> session = sv.checkout.create_session(
+        ...     customer_ref=customer_ref, product_ref="prd_0QKI8NHF"
         ... )
         >>> print(session.checkout_url)
     """
@@ -63,6 +94,17 @@ class SolvaPay:
             timeout=timeout,
             logger=logger,
         )
+        # Eager namespace construction (HLD RN1).
+        # Reuses the underlying HttpxTransport from _http for zero double-init.
+        _t = self._http._transport
+        self.customers = CustomersOperations(sync_transport=_t, async_transport=None)
+        self.checkout = CheckoutOperations(sync_transport=_t, async_transport=None)
+        self.limits = LimitsOperations(sync_transport=_t, async_transport=None)
+        self.purchases = PurchasesOperations(sync_transport=_t, async_transport=None)
+        self.usage = UsageOperations(sync_transport=_t, async_transport=None)
+        self.products = ProductsOperations(sync_transport=_t, async_transport=None)
+        self.plans = PlansOperations(sync_transport=_t, async_transport=None)
+        self.merchant = MerchantOperations(sync_transport=_t, async_transport=None)
 
     def close(self) -> None:
         self._http.close()
@@ -73,6 +115,8 @@ class SolvaPay:
     def __exit__(self, *_: object) -> None:
         self.close()
 
+    # ── Deprecated flat shims — removed in v2.0 ──
+
     def create_checkout_session(
         self,
         *,
@@ -82,32 +126,14 @@ class SolvaPay:
         return_url: str | None = None,
         idempotency_key: str | None = None,
     ) -> CheckoutSession:
-        """Create a hosted checkout session.
-
-        Maps to POST /v1/sdk/checkout-sessions.
-
-        Args:
-            customer_ref: Backend customer reference.
-            product_ref: SolvaPay product reference (e.g., "prd_0QKI8NHF").
-            plan_ref: Optional plan reference. Omit to show plan selector.
-            return_url: Optional URL to redirect after checkout.
-
-        Returns:
-            CheckoutSession with .session_id and .checkout_url.
-        """
-        req = CheckoutSessionRequest(
+        _shim_warn("sv.checkout.create_session()")
+        return self.checkout.create_session(
             customer_ref=customer_ref,
             product_ref=product_ref,
             plan_ref=plan_ref,
             return_url=return_url,
-        )
-        data = self._http.request(
-            "POST",
-            "/v1/sdk/checkout-sessions",
-            json=req.model_dump(by_alias=True, exclude_none=True),
             idempotency_key=idempotency_key,
         )
-        return CheckoutSession.model_validate(data)
 
     def ensure_customer(
         self,
@@ -118,40 +144,14 @@ class SolvaPay:
         name: str | None = None,
         idempotency_key: str | None = None,
     ) -> str:
-        """Idempotently create or look up a customer.
-
-        Tries GET /v1/sdk/customers?externalRef=... first. On 404, creates via
-        POST /v1/sdk/customers. Auto-generates a placeholder email if not provided.
-
-        Returns the SolvaPay backend customer reference string.
-        """
-        lookup_ref = external_ref or customer_ref
-        try:
-            existing = self._http.request(
-                "GET", "/v1/sdk/customers", params={"externalRef": lookup_ref}
-            )
-            ref = existing.get("reference") or existing.get("customerRef")
-            if ref:
-                return str(ref)
-        except SolvaPayAPIError as exc:
-            if exc.status_code != 404:
-                raise
-
-        req = CreateCustomerRequest(
-            email=email or f"{customer_ref}-{int(time.time())}@auto-created.local",
-            external_ref=lookup_ref,
+        _shim_warn("sv.customers.ensure()")
+        return self.customers.ensure(
+            customer_ref,
+            external_ref,
+            email=email,
             name=name,
-        )
-        created = self._http.request(
-            "POST",
-            "/v1/sdk/customers",
-            json=req.model_dump(by_alias=True, exclude_none=True),
             idempotency_key=idempotency_key,
         )
-        ref = created.get("reference") or created.get("customerRef")
-        if not ref:
-            raise SolvaPayAPIError(200, f"customer create returned no reference: {created!r}")
-        return str(ref)
 
     def get_customer(
         self,
@@ -160,18 +160,8 @@ class SolvaPay:
         external_ref: str | None = None,
         email: str | None = None,
     ) -> Customer:
-        """Retrieve a customer by ref, external_ref, or email."""
-        if customer_ref:
-            data = self._http.request("GET", f"/v1/sdk/customers/{customer_ref}")
-        elif external_ref:
-            data = self._http.request(
-                "GET", "/v1/sdk/customers", params={"externalRef": external_ref}
-            )
-        elif email:
-            data = self._http.request("GET", "/v1/sdk/customers", params={"email": email})
-        else:
-            raise ValueError("Must provide customer_ref, external_ref, or email")
-        return Customer.model_validate(data)
+        _shim_warn("sv.customers.get()")
+        return self.customers.get(customer_ref, external_ref=external_ref, email=email)
 
     def check_limits(
         self,
@@ -182,23 +172,14 @@ class SolvaPay:
         meter_name: str | None = None,
         usage_type: str | None = None,
     ) -> LimitResponse:
-        """Check whether a customer is within their purchase/usage limits.
-
-        Maps to POST /v1/sdk/limits.
-        """
-        req = CheckLimitsRequest(
+        _shim_warn("sv.limits.check()")
+        return self.limits.check(
             customer_ref=customer_ref,
             product_ref=product_ref,
             plan_ref=plan_ref,
             meter_name=meter_name,
             usage_type=usage_type,
         )
-        data = self._http.request(
-            "POST",
-            "/v1/sdk/limits",
-            json=req.model_dump(by_alias=True, exclude_none=True),
-        )
-        return LimitResponse.model_validate(data)
 
     def track_usage(
         self,
@@ -209,17 +190,12 @@ class SolvaPay:
         units: float,
         idempotency_key: str | None = None,
     ) -> dict[str, Any]:
-        """Record usage against a meter. Maps to POST /v1/sdk/usages."""
-        req = TrackUsageRequest(
+        _shim_warn("sv.usage.track()")
+        return self.usage.track(
             customer_ref=customer_ref,
             product_ref=product_ref,
             meter_name=meter_name,
             units=units,
-        )
-        return self._http.request(
-            "POST",
-            "/v1/sdk/usages",
-            json=req.model_dump(by_alias=True, exclude_none=True),
             idempotency_key=idempotency_key,
         )
 
@@ -231,92 +207,54 @@ class SolvaPay:
         name: str | None = None,
         external_ref: str | None = None,
     ) -> Customer:
-        """Update customer fields. Maps to PATCH /v1/sdk/customers/{ref}."""
-        req = UpdateCustomerRequest(email=email, name=name, external_ref=external_ref)
-        data = self._http.request(
-            "PATCH",
-            f"/v1/sdk/customers/{customer_ref}",
-            json=req.model_dump(by_alias=True, exclude_none=True),
-        )
-        return Customer.model_validate(data)
+        _shim_warn("sv.customers.update()")
+        return self.customers.update(customer_ref, email=email, name=name, external_ref=external_ref)
 
     def get_customer_balance(self, customer_ref: str) -> BalanceResponse:
-        """Get credit balance for a customer. Maps to GET /v1/sdk/customers/{ref}/balance."""
-        data = self._http.request("GET", f"/v1/sdk/customers/{customer_ref}/balance")
-        return BalanceResponse.model_validate(data)
+        _shim_warn("sv.customers.balance()")
+        return self.customers.balance(customer_ref)
 
     def cancel_purchase(
         self, purchase_ref: str, *, reason: str | None = None, idempotency_key: str | None = None
     ) -> dict[str, Any]:
-        """Cancel a purchase. Maps to POST /v1/sdk/purchases/{ref}/cancel."""
-        req = CancelPurchaseRequest(reason=reason)
-        return self._http.request(
-            "POST",
-            f"/v1/sdk/purchases/{purchase_ref}/cancel",
-            json=req.model_dump(by_alias=True, exclude_none=True),
-            idempotency_key=idempotency_key,
-        )
+        _shim_warn("sv.purchases.cancel()")
+        return self.purchases.cancel(purchase_ref, reason=reason, idempotency_key=idempotency_key)
 
     def reactivate_purchase(
         self, purchase_ref: str, *, idempotency_key: str | None = None
     ) -> dict[str, Any]:
-        """Reactivate a cancelled purchase. Maps to POST /v1/sdk/purchases/{ref}/reactivate."""
-        return self._http.request(
-            "POST",
-            f"/v1/sdk/purchases/{purchase_ref}/reactivate",
-            idempotency_key=idempotency_key,
-        )
-
-    # --- Admin: Products ---
+        _shim_warn("sv.purchases.reactivate()")
+        return self.purchases.reactivate(purchase_ref, idempotency_key=idempotency_key)
 
     def list_products(self) -> list[Product]:
-        """List all products. Maps to GET /v1/sdk/products."""
-        data = self._http.request("GET", "/v1/sdk/products")
-        items: list[Any] = data if isinstance(data, list) else data.get("products", [])
-        return [Product.model_validate(p) for p in items]
+        _shim_warn("sv.products.list()")
+        return self.products.list()
 
     def get_product(self, product_ref: str) -> Product:
-        """Get a product by ref. Maps to GET /v1/sdk/products/{ref}."""
-        data = self._http.request("GET", f"/v1/sdk/products/{product_ref}")
-        return Product.model_validate(data)
+        _shim_warn("sv.products.get()")
+        return self.products.get(product_ref)
 
     def create_product(
         self, *, name: str, type: str, default_currency: str, idempotency_key: str | None = None
     ) -> Product:
-        """Create a product. Maps to POST /v1/sdk/products."""
-        req = CreateProductRequest(name=name, type=type, default_currency=default_currency)
-        data = self._http.request(
-            "POST",
-            "/v1/sdk/products",
-            json=req.model_dump(by_alias=True, exclude_none=True),
-            idempotency_key=idempotency_key,
+        _shim_warn("sv.products.create()")
+        return self.products.create(
+            name=name, type=type, default_currency=default_currency, idempotency_key=idempotency_key
         )
-        return Product.model_validate(data)
 
     def delete_product(self, product_ref: str) -> dict[str, Any]:
-        """Delete a product. Maps to DELETE /v1/sdk/products/{ref}."""
-        return self._http.request("DELETE", f"/v1/sdk/products/{product_ref}")
+        _shim_warn("sv.products.delete()")
+        return self.products.delete(product_ref)
 
     def clone_product(
         self, product_ref: str, *, new_name: str, idempotency_key: str | None = None
     ) -> Product:
-        """Clone a product with a new name. Maps to POST /v1/sdk/products/{ref}/clone."""
-        req = CloneProductRequest(new_name=new_name)
-        data = self._http.request(
-            "POST",
-            f"/v1/sdk/products/{product_ref}/clone",
-            json=req.model_dump(by_alias=True, exclude_none=True),
-            idempotency_key=idempotency_key,
-        )
-        return Product.model_validate(data)
-
-    # --- Admin: Plans ---
+        _shim_warn("sv.products.clone()")
+        return self.products.clone(product_ref, new_name=new_name, idempotency_key=idempotency_key)
 
     def list_plans(self, product_ref: str) -> list[Plan]:
-        """List plans for a product. Maps to GET /v1/sdk/products/{ref}/plans."""
-        data = self._http.request("GET", f"/v1/sdk/products/{product_ref}/plans")
-        items: list[Any] = data if isinstance(data, list) else data.get("plans", [])
-        return [Plan.model_validate(p) for p in items]
+        _shim_warn("sv.plans.list()")
+        return self.plans.list(product_ref)
 
     def create_plan(
         self,
@@ -329,17 +267,16 @@ class SolvaPay:
         interval: str | None = None,
         idempotency_key: str | None = None,
     ) -> Plan:
-        """Create a plan for a product. Maps to POST /v1/sdk/products/{ref}/plans."""
-        req = CreatePlanRequest(
-            name=name, type=type, price=price, currency=currency, interval=interval
-        )
-        data = self._http.request(
-            "POST",
-            f"/v1/sdk/products/{product_ref}/plans",
-            json=req.model_dump(by_alias=True, exclude_none=True),
+        _shim_warn("sv.plans.create()")
+        return self.plans.create(
+            product_ref,
+            name=name,
+            type=type,
+            price=price,
+            currency=currency,
+            interval=interval,
             idempotency_key=idempotency_key,
         )
-        return Plan.model_validate(data)
 
     def update_plan(
         self,
@@ -352,29 +289,19 @@ class SolvaPay:
         currency: str | None = None,
         interval: str | None = None,
     ) -> Plan:
-        """Update a plan. Maps to PUT /v1/sdk/products/{ref}/plans/{ref}."""
-        req = UpdatePlanRequest(
-            name=name, type=type, price=price, currency=currency, interval=interval
+        _shim_warn("sv.plans.update()")
+        return self.plans.update(
+            product_ref, plan_ref, name=name, type=type, price=price, currency=currency, interval=interval
         )
-        data = self._http.request(
-            "PUT",
-            f"/v1/sdk/products/{product_ref}/plans/{plan_ref}",
-            json=req.model_dump(by_alias=True, exclude_none=True),
-        )
-        return Plan.model_validate(data)
 
     def delete_plan(self, product_ref: str, plan_ref: str) -> dict[str, Any]:
-        """Delete a plan. Maps to DELETE /v1/sdk/products/{ref}/plans/{ref}."""
-        return self._http.request("DELETE", f"/v1/sdk/products/{product_ref}/plans/{plan_ref}")
-
-    # --- Admin: Merchant + Platform ---
+        _shim_warn("sv.plans.delete()")
+        return self.plans.delete(product_ref, plan_ref)
 
     def get_merchant(self) -> Merchant:
-        """Get merchant account details. Maps to GET /v1/sdk/merchant."""
-        data = self._http.request("GET", "/v1/sdk/merchant")
-        return Merchant.model_validate(data)
+        _shim_warn("sv.merchant.get()")
+        return self.merchant.get()
 
     def get_platform_config(self) -> PlatformConfig:
-        """Get platform-level configuration. Maps to GET /v1/sdk/platform-config."""
-        data = self._http.request("GET", "/v1/sdk/platform-config")
-        return PlatformConfig.model_validate(data)
+        _shim_warn("sv.merchant.get_platform_config()")
+        return self.merchant.get_platform_config()
