@@ -1,0 +1,82 @@
+{
+  "APIConnectionError": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "APIError": {
+    "removed_in": "2.0",
+    "tier": "deprecated"
+  },
+  "APIServerError": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "APITimeoutError": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "Annotated": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "AsyncSolvaPay": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "AuthenticationError": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "BalanceResponse": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "InvalidRequestError": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "Merchant": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "NotFoundError": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "PaywallRequired": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "PermissionError": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "Plan": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "PlatformConfig": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "Product": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "RateLimitError": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "SolvaPay": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "SolvaPayError": {
+    "removed_in": null,
+    "tier": "stable"
+  },
+  "verify_webhook": {
+    "removed_in": null,
+    "tier": "stable"
+  }
+}

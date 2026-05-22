@@ -20,5 +20,7 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
       - run: uv sync --all-extras --dev
       - run: uv run ruff check src tests
+      - run: uv run ruff format --check src tests
       - run: uv run mypy src
       - run: uv run pytest -v
+      - run: uv run python tools/api_diff.py
