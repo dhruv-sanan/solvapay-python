@@ -80,7 +80,7 @@ def register_payable_tool_fastmcp(mcp_server: Any, fn: Any) -> None:
     Requires: pip install solvapay-python[mcp]
     """
     try:
-        import fastmcp  # type: ignore[import-not-found]  # noqa: F401
+        import fastmcp  # noqa: F401
     except ImportError as exc:
         raise ImportError("fastmcp is required: pip install 'solvapay-python[mcp]'") from exc
 
