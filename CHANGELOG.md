@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.8.0 — 2026-05-23
+
+V1 architecture spine + AI-agent moat. 10 atomic commits establishing locked architecture invariants per HLD §V1.1–V1.19.
+
+### Added
+- **Transport Protocol kernel** (`solvapay._transport`): `Transport`/`AsyncTransport` Protocol shapes, `RequestSpec`/`ResponseSpec` frozen dataclasses, case-insensitive `Headers`, canonical middleware stack (`Redacting` → `Logging` → `IdempotencyHeader` → `ContextPropagating`), `default_stack()` recipe.
+- **Operations registry + resource-namespace API**: `OpSpec` + `RetrySafety` enum, `REGISTRY`, path interpolation with `urllib.parse.quote`. All clients gain eager namespace attrs: `sv.customers`, `sv.checkout`, `sv.limits`, `sv.purchases`, `sv.usage`, `sv.products`, `sv.plans`, `sv.merchant`.
+- **Paywall package** (`solvapay.paywall`): `Paywall`/`AsyncPaywall` split with type-narrowed construction, `PaywallRequired.checkout_mint_error`, `PayableToolMeta(_meta_version=1)`, `KwargsResolver`/`PositionalResolver`/`PydanticBodyResolver`, `@require`/`@require_async`/`@payable_tool` decorators.
+- **Webhook pipeline** (`solvapay.webhooks`): `WebhookPipeline` with two-knob config (`max_clock_skew_seconds`, `replay_ttl_seconds`), atomic `SeenEventCache.try_claim` (`threading.Lock`), `MultiSecretVerifier` interface, `WebhookEnvelope` dataclass.
+- **`solvapay.adapters.mcp`** (optional `solvapay[mcp]`): `@payable_tool` decorator + four schema flavors (`payable_tool_mcp_schema`, `payable_tool_openai_function`, `payable_tool_anthropic_tool`, `payable_tool_langchain_args_schema`), `register_payable_tool_fastmcp`.
+- **Stability manifest** (`solvapay._stability`): `stable(X)→X` identity decorator registers in `MANIFEST`; `experimental` emits once-per-process `RuntimeWarning`; `deprecated(removed_in=)`. CI gate: `tools/api_diff.py` fails on `@stable` symbol removal without prior `@deprecated`.
+- **Import-linter DAG gate**: `tools/importlinter.cfg` (3 contracts), `docs/architecture/layers.md`. CI fails on layer violation.
+- **LangChain adapter refactor** (`solvapay.adapters.langchain`): Protocol duck-typing — no hard `langchain_core` import at module level; absorbs 0.3→0.4 churn.
+- **Multi-framework demo** (`examples/multi-framework-paywall/`): one `@payable_tool`-decorated function runs across FastMCP, LangChain, and raw async — "one tool, three runtimes, one paywall."
+- **Governance scaffold**: `CODEOWNERS`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `SUPPORT.md`, `CONTRIBUTING.md`, GitHub issue templates, PR template, `docs/rfcs/0001-spending-policy.md`.
+
+### Changed
+- **Flat methods deprecated**: `sv.ensure_customer()`, `sv.check_limits()`, etc. now emit `DeprecationWarning(stacklevel=2)` per call. Use `sv.customers.ensure()`, `sv.limits.check()`, etc. Flat shims removed in v2.0.
+- **`langchain-core` upper bound**: `langchain-core>=0.3,<0.4` now enforced in both dev and optional deps.
+- **`solvapay.langchain`** replaced by `solvapay.adapters.langchain`; old path is a deprecated shim.
+
+### Deprecated
+- `SolvaPayAPIError` — use `APIError`. Alias fires `DeprecationWarning`; removed in v2.0.
+- All flat client methods (`sv.ensure_customer`, `sv.check_limits`, etc.) — use resource-namespace API.
+
 ## 0.7.2 — 2026-05-18
 
 Bug fixes and documentation update.

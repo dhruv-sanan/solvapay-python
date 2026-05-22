@@ -93,7 +93,7 @@ class PlansOperations:
 
     # ── async ──
 
-    async def alist(self, product_ref: str) -> list[Plan]:
+    async def alist(self, product_ref: str) -> list[Plan]:  # type: ignore[valid-type]  # `list` method shadows builtin in this scope
         assert self._async is not None
         url = _interpolate(REGISTRY["plans.list"].path_template, product_ref=product_ref)
         resp = await self._async.send(

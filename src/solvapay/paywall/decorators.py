@@ -28,7 +28,7 @@ def require(
             from solvapay.client import SolvaPay
 
             sv = client if client is not None else SolvaPay()
-            pw = Paywall(client=sv, product=product, plan=plan, customer_ref_arg=customer_ref_arg)
+            pw = Paywall(client=sv, product=product, plan=plan, customer_ref_arg=customer_ref_arg)  # type: ignore[arg-type]  # object|None allows MagicMock in tests
             pw.gate(*args, **kwargs)
             return fn(*args, **kwargs)
 

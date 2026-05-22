@@ -80,7 +80,7 @@ class ProductsOperations:
 
     # ── async ──
 
-    async def alist(self) -> list[Product]:
+    async def alist(self) -> list[Product]:  # type: ignore[valid-type]  # `list` method shadows builtin in this scope
         assert self._async is not None
         resp = await self._async.send(
             RequestSpec(

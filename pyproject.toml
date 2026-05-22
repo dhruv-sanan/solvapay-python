@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "solvapay-python"
-version = "0.7.2"
+version = "0.8.0"
 description = "Community Python SDK for SolvaPay (agent-native payment rails)"
 readme = "README.md"
 license = { text = "MIT" }
@@ -31,7 +31,7 @@ dependencies = [
 
 [project.optional-dependencies]
 fastapi = ["fastapi>=0.110"]
-langchain = ["langchain-core>=0.3"]
+langchain = ["langchain-core>=0.3,<0.4"]
 mcp = ["fastmcp>=0.4,<0.5"]
 
 [project.urls]

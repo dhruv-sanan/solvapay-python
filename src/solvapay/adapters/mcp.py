@@ -49,6 +49,8 @@ def payable_tool(
             sv = client
             if sv is None or (not isinstance(sv, _SolvaPay) and not isinstance(sv, _AsyncSolvaPay)):
                 sv = _SolvaPay()
+            if isinstance(sv, _AsyncSolvaPay):
+                sv = _SolvaPay()
 
             pw = Paywall(client=sv, product=product, plan=plan, customer_ref_arg=customer_ref_arg)
             try:
@@ -78,7 +80,7 @@ def register_payable_tool_fastmcp(mcp_server: Any, fn: Any) -> None:
     Requires: pip install solvapay-python[mcp]
     """
     try:
-        import fastmcp  # noqa: F401
+        import fastmcp  # type: ignore[import-not-found]  # noqa: F401
     except ImportError as exc:
         raise ImportError("fastmcp is required: pip install 'solvapay-python[mcp]'") from exc
 
@@ -113,7 +115,7 @@ def payable_tool_anthropic_tool(fn: Any) -> dict[str, Any]:
     }
 
 
-def payable_tool_langchain_args_schema(fn: Any) -> type:
+def payable_tool_langchain_args_schema(fn: Any) -> type[Any]:
     """Return a Pydantic BaseModel subclass from the function signature.
 
     Requires: pydantic>=2.6
@@ -132,7 +134,7 @@ def payable_tool_langchain_args_schema(fn: Any) -> type:
         default = param.default if param.default is not inspect.Parameter.empty else ...
         fields[name] = (annotation, default)
 
-    return create_model(f"{fn.__name__}_ArgsSchema", **fields)
+    return create_model(f"{fn.__name__}_ArgsSchema", **fields)  # type: ignore[no-any-return]
 
 
 def _pydantic_json_schema(fn: Any, mode: str) -> dict[str, Any]:

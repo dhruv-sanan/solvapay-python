@@ -60,12 +60,13 @@ class Paywall:
         if self._resolver is not None:
             customer_ref = self._resolver.resolve(*args, **kwargs)
         else:
-            customer_ref = kwargs.get(self._customer_ref_arg)
-            if not isinstance(customer_ref, str):
+            _raw = kwargs.get(self._customer_ref_arg)
+            if not isinstance(_raw, str):
                 raise SolvaPayError(
                     f"Paywall.gate: expected str kwarg '{self._customer_ref_arg}', "
-                    f"got {type(customer_ref).__name__}"
+                    f"got {type(_raw).__name__}"
                 )
+            customer_ref = _raw
 
         limits = self._client.limits.check(
             customer_ref=customer_ref,
@@ -120,12 +121,13 @@ class AsyncPaywall:
         if self._resolver is not None:
             customer_ref = self._resolver.resolve(*args, **kwargs)
         else:
-            customer_ref = kwargs.get(self._customer_ref_arg)
-            if not isinstance(customer_ref, str):
+            _raw = kwargs.get(self._customer_ref_arg)
+            if not isinstance(_raw, str):
                 raise SolvaPayError(
                     f"AsyncPaywall.gate: expected str kwarg '{self._customer_ref_arg}', "
-                    f"got {type(customer_ref).__name__}"
+                    f"got {type(_raw).__name__}"
                 )
+            customer_ref = _raw
 
         limits = await self._client.limits.acheck(
             customer_ref=customer_ref,
