@@ -23,8 +23,8 @@ from solvapay.paywall import PaywallRequired
 
 
 def test_webhook_compare_digest_used_not_eq() -> None:
-    """webhooks.py must use hmac.compare_digest, never plain == on HMAC values."""
-    import solvapay.webhooks as wh_mod
+    """webhooks verify module must use hmac.compare_digest, never plain == on HMAC values."""
+    import solvapay.webhooks.verify as wh_mod
 
     source = inspect.getsource(wh_mod)
     assert "compare_digest" in source, "compare_digest must be present in webhooks.py"
