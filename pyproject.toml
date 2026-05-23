@@ -34,6 +34,7 @@ fastapi = ["fastapi>=0.110"]
 langchain = ["langchain-core>=0.3,<0.4"]
 mcp = ["fastmcp>=0.4,<0.5"]
 asgi = []  # raw ASGI; no extra deps required
+retry = ["tenacity>=8.2,<10"]
 
 [project.urls]
 Homepage = "https://github.com/dhruv-sanan/solvapay-python"
@@ -51,6 +52,7 @@ dev = [
     "ruff>=0.5",
     "pytest-cov>=7.1.0",
     "import-linter>=2.11",
+    "tenacity>=8.2,<10",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -71,6 +73,10 @@ files = ["src/solvapay"]
 
 [[tool.mypy.overrides]]
 module = ["fastmcp", "fastmcp.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["tenacity", "tenacity.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
