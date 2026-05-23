@@ -53,6 +53,7 @@ dev = [
     "pytest-cov>=7.1.0",
     "import-linter>=2.11",
     "tenacity>=8.2,<10",
+    "towncrier>=23",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -83,3 +84,32 @@ ignore_missing_imports = true
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = ["contract: sandbox contract tests (require SOLVAPAY_SANDBOX_KEY)"]
+
+[tool.towncrier]
+package = "solvapay"
+package_dir = "src"
+filename = "CHANGELOG.md"
+directory = "changelog.d"
+title_format = "## [{version}] — {project_date}"
+issue_format = "#{issue}"
+underlines = ["", "", ""]
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "Features"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug Fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "doc"
+name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "removal"
+name = "Removals"
+showcontent = true

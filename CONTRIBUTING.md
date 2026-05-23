@@ -30,13 +30,26 @@ The SDK has a strict layer hierarchy — see [docs/architecture/layers.md](docs/
 
 CI fails on violations via `import-linter`.
 
+## Changelog fragment (required)
+
+Every PR that modifies `src/` must include a towncrier fragment in `changelog.d/`.
+
+```bash
+# Create a fragment (replace 42 with your issue/PR number)
+echo "Add RetryTransport middleware for automatic retry on transient errors." > changelog.d/42.feature
+```
+
+See `changelog.d/README.md` for naming conventions and types.
+
+PRs that touch `src/` without a `changelog.d/` entry will fail CI.
+
 ## PR checklist
 
 - [ ] Tests added for new behavior
-- [ ] `CHANGELOG.md` updated
+- [ ] `changelog.d/<issue>.<type>` fragment added (required for `src/` changes)
 - [ ] `docs/` updated if public API changed
 - [ ] Layer DAG respected (`uv run lint-imports` passes)
-- [ ] Stability manifest updated if new public exports added
+- [ ] Stability manifest updated if new public exports added (`uv run python tools/api_diff.py`)
 
 ## Commit style
 

@@ -26,3 +26,13 @@ jobs:
       - run: uv run python tools/api_diff.py
       - run: uv run lint-imports --config tools/importlinter.cfg
       - run: uv run python tools/lint_invariants.py
+      - name: Check changelog fragment on PRs touching src/
+        if: github.event_name == 'pull_request'
+        run: |
+          changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          if echo "$changed" | grep -q "^src/"; then
+            if ! echo "$changed" | grep -q "^changelog.d/"; then
+              echo "ERROR: src/ modified without a changelog.d/ fragment. Add one — see changelog.d/README.md"
+              exit 1
+            fi
+          fi
