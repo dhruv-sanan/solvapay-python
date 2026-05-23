@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import hmac
 import json
 import time
 from collections.abc import Callable, Sequence
@@ -12,6 +10,7 @@ from typing import Any
 from solvapay.exceptions import SolvaPayError
 from solvapay.webhooks.envelope import WebhookEnvelope
 from solvapay.webhooks.replay import InMemorySeenEventCache, SeenEventCache
+from solvapay.webhooks.rotation import MultiSecretVerifier
 from solvapay.webhooks.verify import _parse_signature_header
 
 
@@ -34,7 +33,7 @@ class WebhookPipeline:
     ) -> None:
         if not secrets:
             raise ValueError("WebhookPipeline requires at least one secret")
-        self._secrets = list(secrets)
+        self._verifier = MultiSecretVerifier(secrets)
         self._max_clock_skew_seconds = max_clock_skew_seconds
         self._replay_ttl_seconds = replay_ttl_seconds
         self._cache: SeenEventCache = seen_cache or InMemorySeenEventCache()
@@ -55,17 +54,7 @@ class WebhookPipeline:
             )
 
         payload = f"{timestamp}.{body_str}"
-        verified = False
-        for secret in self._secrets:
-            expected = hmac.new(
-                secret.encode(),
-                payload.encode(),
-                hashlib.sha256,
-            ).hexdigest()
-            if hmac.compare_digest(expected, received):
-                verified = True
-                break
-        if not verified:
+        if not self._verifier.verify(payload=payload, received=received):
             raise SolvaPayError("Webhook signature mismatch")
 
         try:
