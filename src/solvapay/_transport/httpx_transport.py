@@ -30,7 +30,7 @@ from solvapay.exceptions import (
 
 _logger = logging.getLogger("solvapay.http")
 
-_VERSION = "0.8.0"  # keep in sync with __version__
+_VERSION = "0.9.0"  # keep in sync with __version__
 
 
 # ── Legacy _RequestSpec — kept for HttpClient / AsyncHttpClient backward-compat ──
