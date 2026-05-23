@@ -45,6 +45,7 @@ jobs:
         run: uv run pip-audit
       - name: Check changelog fragment on PRs touching src/
         if: github.event_name == 'pull_request'
+        shell: bash
         run: |
           git fetch origin ${{ github.base_ref }}
           changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
