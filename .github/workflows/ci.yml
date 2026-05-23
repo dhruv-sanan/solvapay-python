@@ -44,6 +44,7 @@ jobs:
       - name: Check changelog fragment on PRs touching src/
         if: github.event_name == 'pull_request'
         run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
           changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
           if echo "$changed" | grep -q "^src/"; then
             if ! echo "$changed" | grep -q "^changelog.d/"; then

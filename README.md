@@ -102,16 +102,23 @@ if limits.within_limits:
 
 ## Idempotency
 
-All mutating ops accept `idempotency_key`. Use `solvapay.idempotency.from_payload` to derive deterministic keys from request content:
+All mutating ops accept `idempotency_key`. Use `solvapay.idempotency.from_payload` to derive deterministic keys:
 
 ```python
 from solvapay.idempotency import from_payload
 
+# Default: key includes UTC date — rolls at midnight, bounds replay past server TTL
 key = from_payload("track_usage", customer_ref, product_ref, "requests", units)
 sv.usage.track(..., idempotency_key=key)   # retry-safe
+
+# Hourly bucket (high-frequency ops)
+key = from_payload("charge", customer_ref, time_bucket="hour")
+
+# Pure payload hash — caller manages TTL externally
+key = from_payload("idempotent_op", ref, time_bucket=None)
 ```
 
-Retried POSTs **must reuse the same key**. Key should change only when the logical request changes.
+Retried POSTs **must reuse the same key**. A bucket roll (midnight / hour boundary) produces a new key — the server treats it as a new request.
 
 ---
 
@@ -138,7 +145,7 @@ except SolvaPayError as e:
     ...  # catch-all
 ```
 
-No built-in retries by design. Layer `tenacity` manually. `solvapay[retry]` RetryTransport ships in v0.9.
+No built-in retries by default. `solvapay[retry]` ships `RetryTransport` — exponential backoff with jitter, 3 attempts, respects `OpSpec.retry_safety` (won't retry non-idempotent ops without an idempotency key). Or layer `tenacity` manually.
 
 ---
 
@@ -155,6 +162,29 @@ pipeline = WebhookPipeline(
 )
 
 envelope = pipeline.process(body=request.body, signature=request.headers["sv-signature"])
+```
+
+**Secret rotation** — pass multiple secrets; primary tried first, secondary on mismatch:
+
+```python
+pipeline = WebhookPipeline(["whsec_new...", "whsec_old..."])
+```
+
+**Sign a webhook** (testing / outbound fanout):
+
+```python
+from solvapay.webhooks import sign_webhook
+
+header = sign_webhook(body=b'{"type":"purchase.created"}', secret="whsec_...")
+# → "t=1716470000,v1=abc123..."
+```
+
+**ASGI adapter** — mount directly in FastAPI / Starlette / Litestar:
+
+```python
+from solvapay.adapters.asgi import webhook_app
+
+app.mount("/webhook", webhook_app(pipeline, on_event=handle))
 ```
 
 **Typed events** — discriminated union over 13 event types:
@@ -243,6 +273,8 @@ pip install solvapay-python                   # core
 pip install 'solvapay-python[mcp]'            # + FastMCP adapter (FastMCP ≥0.4)
 pip install 'solvapay-python[langchain]'      # + LangChain adapter (langchain-core ≥0.3)
 pip install 'solvapay-python[fastapi]'        # + FastAPI webhook router
+pip install 'solvapay-python[asgi]'           # + raw ASGI webhook adapter (no extra deps)
+pip install 'solvapay-python[retry]'          # + RetryTransport (tenacity)
 ```
 
 ## Environment variables
@@ -266,17 +298,30 @@ pip install 'solvapay-python[fastapi]'        # + FastAPI webhook router
 
 ---
 
+## API version pinning
+
+Pin the API version your code was written against — prevents silent breakage when the server evolves:
+
+```python
+sv = SolvaPay(api_version="2026-05-22")   # sends Solvapay-Version header
+sv = SolvaPay(api_version=None)            # omit header (use server default)
+```
+
+Default is `"2026-05-22"` (v0.9 ship date). Bump only on major SDK versions.
+
+---
+
 ## Roadmap
 
 | Version | Theme |
 |---------|-------|
 | v0.8 ✅ | V1 architecture spine — Transport kernel, OpSpec registry, paywall/webhook packages, `@payable_tool`, stability manifest, layer DAG CI gate |
-| v0.9 | Production polish — API-version pinning, idempotency TTL, `RetryTransport`, `RecordingTransport`, contract tests, lint automation, doc site (MkDocs Material), supply-chain hygiene |
-| v1.0 | Gated on founder signal — OpenAPI-generated models, full secret rotation, production hardening |
+| v0.9 ✅ | Production polish — API-version pinning, idempotency TTL, `RetryTransport`, `RecordingTransport`, ASGI adapter, secret rotation, `sign_webhook`, contract tests, lint automation, MkDocs site, supply-chain hygiene |
+| v1.0 | Gated on founder signal — OpenAPI-generated models, WSGI/Lambda adapters, V2 planning |
 
 ---
 
 ## Status
 
-**v0.8.0** — V1 architecture spine + AI-agent moat. `mypy --strict` clean (43 files). 261 tests. 89% line coverage.  
+**v0.9.0** — Production polish + C1 closure. `mypy --strict` clean (45 files). 294 tests. 89% line / 87% branch coverage.  
 Community SDK, not official. Proposal: [solvapay/solvapay-sdk#187](https://github.com/solvapay/solvapay-sdk/issues/187).
