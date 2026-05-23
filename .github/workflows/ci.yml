@@ -26,6 +26,8 @@ jobs:
       - run: uv run python tools/api_diff.py
       - run: uv run lint-imports --config tools/importlinter.cfg
       - run: uv run python tools/lint_invariants.py
+      - name: pip-audit
+        run: uv run pip-audit
       - name: Check changelog fragment on PRs touching src/
         if: github.event_name == 'pull_request'
         run: |

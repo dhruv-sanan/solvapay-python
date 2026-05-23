@@ -58,6 +58,7 @@ dev = [
     "import-linter>=2.11",
     "tenacity>=8.2,<10",
     "towncrier>=23",
+    "pip-audit>=2.7",
 ]
 
 [tool.hatch.build.targets.wheel]
