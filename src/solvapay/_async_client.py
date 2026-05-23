@@ -92,9 +92,28 @@ class AsyncSolvaPay:
         self.products = ProductsOperations(sync_transport=None, async_transport=_t)
         self.plans = PlansOperations(sync_transport=None, async_transport=_t)
         self.merchant = MerchantOperations(sync_transport=None, async_transport=_t)
+        self._closed = False
 
     async def aclose(self) -> None:
+        self._closed = True
         await self._http.aclose()
+
+    def __del__(self) -> None:
+        if not self._closed:
+            import asyncio
+            import warnings
+
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                return
+            if loop.is_running():
+                warnings.warn(
+                    "AsyncSolvaPay was not closed. "
+                    "Use `async with AsyncSolvaPay(...)` or call `await sv.aclose()`.",
+                    ResourceWarning,
+                    stacklevel=2,
+                )
 
     async def __aenter__(self) -> AsyncSolvaPay:
         return self
