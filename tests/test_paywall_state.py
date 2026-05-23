@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import respx
+
 from solvapay.models import LimitResponse
 from solvapay.paywall_state import (
     GateDecision,
@@ -164,6 +166,10 @@ def test_nudge_no_url_clause_when_absent() -> None:
 # ---------------------------------------------------------------------------
 
 
+_BASE = "https://api.solvapay.test"
+
+
+@respx.mock
 def test_gate_enriches_missing_checkout_and_plan() -> None:
     """Real API returns withinLimits=false with no plan and no checkoutUrl.
 
@@ -171,64 +177,61 @@ def test_gate_enriches_missing_checkout_and_plan() -> None:
     get_customer to read the plan from active purchases before classifying.
     """
     import httpx
-    import respx
 
     from solvapay import SolvaPay
     from solvapay.paywall_state import gate
 
-    with respx.mock(base_url="https://api.solvapay.test") as mock:
-        mock.post("/v1/sdk/limits").mock(
-            return_value=httpx.Response(
-                200, json={"withinLimits": False, "remaining": 0, "meterName": "requests"}
-            )
+    respx.post(f"{_BASE}/v1/sdk/limits").mock(
+        return_value=httpx.Response(
+            200, json={"withinLimits": False, "remaining": 0, "meterName": "requests"}
         )
-        mock.post("/v1/sdk/checkout-sessions").mock(
-            return_value=httpx.Response(
-                200,
-                json={"sessionId": "cs_x", "checkoutUrl": "https://solvapay.com/c/test"},
-            )
+    )
+    respx.post(f"{_BASE}/v1/sdk/checkout-sessions").mock(
+        return_value=httpx.Response(
+            200,
+            json={"sessionId": "cs_x", "checkoutUrl": "https://solvapay.com/c/test"},
         )
-        mock.get("/v1/sdk/customers/cus_1").mock(
-            return_value=httpx.Response(
-                200,
-                json={
-                    "reference": "cus_1",
-                    "email": "u@x",
-                    "externalRef": "ext_1",
-                    "purchases": [
-                        {
-                            "reference": "pur_1",
-                            "status": "active",
-                            "startDate": "2026-05-11T00:00:00Z",
-                            "productName": "Free",
-                            "planRef": "pln_free",
-                        }
-                    ],
-                },
-            )
+    )
+    respx.get(f"{_BASE}/v1/sdk/customers/cus_1").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "reference": "cus_1",
+                "email": "u@x",
+                "externalRef": "ext_1",
+                "purchases": [
+                    {
+                        "reference": "pur_1",
+                        "status": "active",
+                        "startDate": "2026-05-11T00:00:00Z",
+                        "productName": "Free",
+                        "planRef": "pln_free",
+                    }
+                ],
+            },
         )
-        client = SolvaPay(api_key="sk_test_dummy", base_url="https://api.solvapay.test")
-        decision = gate(client, customer_ref="cus_1", product_ref="prd_x")
+    )
+    client = SolvaPay(api_key="sk_test_dummy", base_url=_BASE)
+    decision = gate(client, customer_ref="cus_1", product_ref="prd_x")
 
     assert decision.state == PaywallState.UPGRADE_REQUIRED
     assert decision.checkout_url == "https://solvapay.com/c/test"
 
 
+@respx.mock
 def test_gate_returns_ok_when_within_limits() -> None:
     import httpx
-    import respx
 
     from solvapay import SolvaPay
     from solvapay.paywall_state import gate
 
-    with respx.mock(base_url="https://api.solvapay.test") as mock:
-        mock.post("/v1/sdk/limits").mock(
-            return_value=httpx.Response(
-                200, json={"withinLimits": True, "remaining": 9999, "meterName": "requests"}
-            )
+    respx.post(f"{_BASE}/v1/sdk/limits").mock(
+        return_value=httpx.Response(
+            200, json={"withinLimits": True, "remaining": 9999, "meterName": "requests"}
         )
-        client = SolvaPay(api_key="sk_test_dummy", base_url="https://api.solvapay.test")
-        decision = gate(client, customer_ref="cus_1", product_ref="prd_x")
+    )
+    client = SolvaPay(api_key="sk_test_dummy", base_url=_BASE)
+    decision = gate(client, customer_ref="cus_1", product_ref="prd_x")
 
     assert decision.state == PaywallState.OK
     assert decision.checkout_url is None

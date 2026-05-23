@@ -25,3 +25,4 @@ jobs:
       - run: uv run pytest -v
       - run: uv run python tools/api_diff.py
       - run: uv run lint-imports --config tools/importlinter.cfg
+      - run: uv run python tools/lint_invariants.py
