@@ -31,7 +31,7 @@ dependencies = [
 
 [project.optional-dependencies]
 fastapi = ["fastapi>=0.110"]
-langchain = ["langchain-core>=0.3,<0.4"]
+langchain = ["langchain-core>=0.3,<1.5"]
 mcp = ["fastmcp>=3.2.0,<4"]
 asgi = []  # raw ASGI; no extra deps required
 retry = ["tenacity>=8.2,<10"]
@@ -48,7 +48,7 @@ docs = [
 ]
 dev = [
     "fastapi>=0.110",
-    "langchain-core>=0.3,<0.4",
+    "langchain-core>=0.3,<1.5",
     "pytest>=8",
     "pytest-asyncio>=0.23",
     "respx>=0.21",
