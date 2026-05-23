@@ -32,7 +32,7 @@ dependencies = [
 [project.optional-dependencies]
 fastapi = ["fastapi>=0.110"]
 langchain = ["langchain-core>=0.3,<0.4"]
-mcp = ["fastmcp>=0.4,<0.5"]
+mcp = ["fastmcp>=3.2.0,<4"]
 asgi = []  # raw ASGI; no extra deps required
 retry = ["tenacity>=8.2,<10"]
 
