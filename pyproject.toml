@@ -33,6 +33,7 @@ dependencies = [
 fastapi = ["fastapi>=0.110"]
 langchain = ["langchain-core>=0.3,<0.4"]
 mcp = ["fastmcp>=0.4,<0.5"]
+asgi = []  # raw ASGI; no extra deps required
 
 [project.urls]
 Homepage = "https://github.com/dhruv-sanan/solvapay-python"
