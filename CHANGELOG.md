@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.9.0 — 2026-05-23
+
+Production polish + C1 adversarial-review closure. API-version pinning, idempotency TTL, webhook secret rotation, ASGI adapter, retry/recording transports, contract tests, lint automation, doc site, supply-chain hardening.
+
+### Added
+- **API-version pinning**: `SolvaPay(api_version="2026-05-22")` and `AsyncSolvaPay(api_version=...)` send `Solvapay-Version` header. Default pinned to `"2026-05-22"`. `api_version=None` omits the header. (HLD V1.13)
+- **Idempotency time-bucket encoding**: `from_payload(*parts, time_bucket="day"|"hour"|None)`. Default `"day"` appends UTC date so keys roll at midnight, bounding replay ambiguity past server TTL. (HLD V1.14)
+- **Webhook secret rotation**: `MultiSecretVerifier` full implementation — tries primary then secondary on signature mismatch; both comparisons constant-time. (HLD V1.7)
+- **`AsyncInMemorySeenEventCache`**: async replay-dedup cache using `asyncio.Lock` for async webhook pipelines. (HLD V1.7)
+- **`sign_webhook(body, secret, *, timestamp)`**: public helper to produce a valid `sv-signature` header for testing and outbound webhook fanout.
+- **ASGI webhook adapter** (`solvapay[asgi]`): `webhook_app(pipeline, on_event, path)` returns a raw ASGI app mountable in Starlette, FastAPI, Litestar, or BlackSheep. (HLD V1.10)
+- **`RetryTransport`**: middleware that retries `APIConnectionError`, `APITimeoutError`, `APIServerError`, `RateLimitError` — exponential backoff with jitter, max 3 attempts. Consults `OpSpec.retry_safety`; refuses to retry `NEVER` ops. (HLD V1.4, `solvapay[retry]`)
+- **`RecordingTransport`**: records `(RequestSpec, ResponseSpec)` pairs to JSON cassettes; replays on subsequent runs. Enables offline contract tests. (HLD V1.4)
+- **Sandbox contract tests** (`tests/contract/`): one test per op against real sandbox via `RecordingTransport`. Nightly CI workflow (`contract.yml`).
+- **Lint invariants** (`tools/lint_invariants.py`): AST checks for 10 gotchas (future annotations, `hmac.compare_digest`, no `logging.basicConfig`, no `asyncio.run()`, alias discipline, etc.). Run in CI on every push.
+- **Towncrier changelog automation**: `changelog.d/` fragments, PR gate requiring a fragment when `src/` changes, `towncrier>=23` dev dep.
+- **MkDocs Material doc site**: `mkdocs.yml` + `docs/` skeleton (Quickstart, Reference, Architecture, Guides, Errors, Idempotency, Webhooks, Migration). Deploys to GitHub Pages on tag. (HLD V1.12)
+- **Dependabot**: weekly Python + GitHub Actions dependency updates (`.github/dependabot.yml`).
+- **`pip-audit` in CI**: dependency CVE scan on every push.
+- **CI matrix expanded**: Ubuntu 3.10/3.11/3.12 + macOS 3.12 + Windows 3.12. (HLD V1.15)
+- **`ResourceWarning` on unclosed `AsyncSolvaPay`**: `__del__` emits `ResourceWarning` if client is not closed and event loop is still running.
+- **OpenAPI investigation RFC**: `docs/rfcs/0002-openapi-investigation.md`.
+
+### Changed
+- `pytest.ini_options.filterwarnings`: adds `ignore::DeprecationWarning:solvapay` so tests exercising deprecated flat-shim API do not fail on expected warnings.
+
+---
+
 ## 0.8.0 — 2026-05-23
 
 V1 architecture spine + AI-agent moat. 10 atomic commits establishing locked architecture invariants per HLD §V1.1–V1.19.

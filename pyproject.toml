@@ -89,6 +89,12 @@ ignore_missing_imports = true
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = ["contract: sandbox contract tests (require SOLVAPAY_SANDBOX_KEY)"]
+filterwarnings = [
+    # Flat shim methods intentionally emit DeprecationWarning (removed in v2.0).
+    # stacklevel=2 makes the warning appear from the test file, so module filter
+    # doesn't match solvapay.* — use message prefix instead.
+    "ignore:Flat method deprecated:DeprecationWarning",
+]
 
 [tool.towncrier]
 package = "solvapay"
