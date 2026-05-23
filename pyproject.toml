@@ -42,6 +42,10 @@ Issues = "https://github.com/dhruv-sanan/solvapay-python/issues"
 "Official TS SDK" = "https://github.com/solvapay/solvapay-sdk"
 
 [dependency-groups]
+docs = [
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.25",
+]
 dev = [
     "fastapi>=0.110",
     "langchain-core>=0.3,<0.4",

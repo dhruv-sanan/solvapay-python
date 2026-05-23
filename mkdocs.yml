@@ -1,0 +1,44 @@
+site_name: solvapay-python
+site_description: Community Python SDK for SolvaPay (agent-native payment rails)
+repo_url: https://github.com/dhruv-sanan/solvapay-python
+repo_name: dhruv-sanan/solvapay-python
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: false
+
+nav:
+  - Quickstart: index.md
+  - Reference:
+      - reference/client.md
+      - reference/exceptions.md
+      - reference/models.md
+      - reference/webhooks.md
+      - reference/paywall.md
+  - Architecture: architecture/layers.md
+  - Guides:
+      - MCP: guides/mcp.md
+      - LangChain: guides/langchain.md
+      - FastAPI: guides/fastapi.md
+  - Errors: errors.md
+  - Idempotency: idempotency.md
+  - Webhooks: webhooks.md
+  - Migration: migration.md
