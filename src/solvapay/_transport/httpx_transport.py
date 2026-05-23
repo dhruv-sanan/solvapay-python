@@ -318,6 +318,7 @@ class HttpClient:
         base_url: str,
         timeout: float = 30.0,
         logger: logging.Logger | None = None,
+        api_version: str | None = None,
     ) -> None:
         self._logger = logger or _logger
         self._transport = HttpxTransport(
@@ -325,6 +326,7 @@ class HttpClient:
             base_url=base_url,
             timeout=timeout,
             logger=logger,
+            api_version=api_version,
         )
 
     def close(self) -> None:
@@ -368,6 +370,7 @@ class AsyncHttpClient:
         base_url: str,
         timeout: float = 30.0,
         logger: logging.Logger | None = None,
+        api_version: str | None = None,
     ) -> None:
         self._logger = logger or _logger
         self._transport = AsyncHttpxTransport(
@@ -375,6 +378,7 @@ class AsyncHttpClient:
             base_url=base_url,
             timeout=timeout,
             logger=logger,
+            api_version=api_version,
         )
 
     async def aclose(self) -> None:

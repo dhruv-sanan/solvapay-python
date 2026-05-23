@@ -75,12 +75,14 @@ class SolvaPay:
         base_url: str | None = None,
         timeout: float = 30.0,
         logger: logging.Logger | None = None,
+        api_version: str | None = "2026-05-22",
     ) -> None:
         self._http = HttpClient(
             api_key=resolve_api_key(api_key),
             base_url=resolve_base_url(base_url),
             timeout=timeout,
             logger=logger,
+            api_version=api_version,
         )
         # Eager namespace construction (HLD RN1).
         # Reuses the underlying HttpxTransport from _http for zero double-init.
