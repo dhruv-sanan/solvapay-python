@@ -1,0 +1,22 @@
+name: contract
+
+on:
+  schedule:
+    - cron: "0 2 * * *"  # nightly at 02:00 UTC
+  workflow_dispatch:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv sync --all-extras --dev
+      - name: Run contract tests
+        run: uv run pytest tests/contract/ -m contract -v
+        env:
+          SOLVAPAY_SANDBOX_KEY: ${{ secrets.SOLVAPAY_SANDBOX_KEY }}
+          SOLVAPAY_TEST_CUSTOMER_REF: ${{ secrets.SOLVAPAY_TEST_CUSTOMER_REF }}
+          SOLVAPAY_TEST_PRODUCT_REF: ${{ secrets.SOLVAPAY_TEST_PRODUCT_REF }}
