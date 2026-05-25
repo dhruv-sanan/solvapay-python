@@ -13,3 +13,4 @@ htmlcov/
 .env.local
 *.egg
 .DS_Store
+site/
