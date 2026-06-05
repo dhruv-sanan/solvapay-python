@@ -19,15 +19,11 @@ jobs:
       - run: uv sync --all-extras --dev
       - name: bandit (high-severity, high-confidence only)
         run: uv run bandit -r src/ -lll
-      - name: Install osv-scanner
-        run: |
-          curl -fsSL -o /tmp/osv-scanner.tar.gz \
-            https://github.com/google/osv-scanner/releases/download/v1.9.2/osv-scanner_linux_amd64.tar.gz
-          mkdir -p /tmp/osv && tar -xzf /tmp/osv-scanner.tar.gz -C /tmp/osv
-          sudo mv /tmp/osv/osv-scanner /usr/local/bin/osv-scanner
-          osv-scanner --version
       - name: osv-scanner (lockfile vuln DB cross-check)
-        run: osv-scanner --lockfile=uv.lock
+        run: |
+          docker run --rm -v "${PWD}:/src" -w /src \
+            ghcr.io/google/osv-scanner:latest \
+            scan source --lockfile=/src/uv.lock
 
 
   test:
@@ -66,7 +62,9 @@ jobs:
       - run: uv run lint-imports --config tools/importlinter.cfg
       - run: uv run python tools/lint_invariants.py
       - name: pip-audit
-        run: uv run pip-audit
+        # PYSEC-2026-196: vuln in the GitHub runner's bundled pip (26.1.1, fixed in 26.1.2).
+        # Not a vuln in any solvapay-python dependency — runner-side hygiene only.
+        run: uv run pip-audit --ignore-vuln PYSEC-2026-196
       - name: Check changelog fragment on PRs touching src/
         if: github.event_name == 'pull_request'
         shell: bash
