@@ -4,8 +4,32 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "0 7 * * *"  # nightly security sweep
 
 jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv sync --all-extras --dev
+      - name: bandit (high-severity, high-confidence only)
+        run: uv run bandit -r src/ -lll
+      - name: Install osv-scanner
+        run: |
+          curl -fsSL -o /tmp/osv-scanner.tar.gz \
+            https://github.com/google/osv-scanner/releases/download/v1.9.2/osv-scanner_linux_amd64.tar.gz
+          mkdir -p /tmp/osv && tar -xzf /tmp/osv-scanner.tar.gz -C /tmp/osv
+          sudo mv /tmp/osv/osv-scanner /usr/local/bin/osv-scanner
+          osv-scanner --version
+      - name: osv-scanner (lockfile vuln DB cross-check)
+        run: osv-scanner --lockfile=uv.lock
+
+
   test:
     strategy:
       matrix:
