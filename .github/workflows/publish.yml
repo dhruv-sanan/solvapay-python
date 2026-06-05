@@ -8,8 +8,25 @@ jobs:
     environment: pypi
     permissions:
       id-token: write
+      contents: write
     steps:
       - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
       - run: uv build
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Generate CycloneDX SBOM
+        run: |
+          # Resolve runtime + all-extras deps from the lockfile and emit a CycloneDX SBOM.
+          uv export --no-dev --all-extras --no-emit-project --format requirements-txt > /tmp/sbom-requirements.txt
+          uv tool run --from cyclonedx-bom cyclonedx-py requirements \
+            --pyproject pyproject.toml \
+            --of JSON --sv 1.6 \
+            -o sbom.cdx.json \
+            /tmp/sbom-requirements.txt
+      - name: Publish to PyPI (Sigstore-signed via trusted publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true
+      - name: Attach SBOM to GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" sbom.cdx.json --clobber
