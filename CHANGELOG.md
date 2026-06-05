@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.9.1] — 2026-06-05
+
+Security & supply-chain quality patch (no public API change).
+
+### Features
+
+- ``publish.yml``: PyPI uploads now ship PEP 740 attestations (Sigstore-backed via OIDC trusted publishing) and attach a CycloneDX SBOM (``sbom.cdx.json``) to each GitHub release.
+- CI: new ``security`` job runs ``bandit -r src/ -lll`` (high-confidence high-severity only) and ``osv-scanner --lockfile=uv.lock`` as a cross-DB check against ``pip-audit``. Runs on PR and nightly cron.
+- ``tests/test_redaction.py``: property-based test with Hypothesis (100 derandomized cases) drives random API keys, hex tokens, and webhook secrets through the HTTP transport and asserts the secret never appears in ``caplog.text`` at any log level.
+- ``tests/test_webhook_timing.py``: smoke test that compares ``verify_webhook`` perf-counter distributions for perfect-match vs near-miss signatures, regressing if someone swaps ``hmac.compare_digest`` for ``==``.
+
+### Bug Fixes
+
+- ``pyproject.toml``: tighten ``httpx`` to ``<0.29`` (closes deviation: was unbounded). FastAPI extra remains unbounded by design — documented in-file.
+
+### Documentation
+
+- ``SECURITY.md``: explicit PCI-scope section — the SDK never transmits raw cardholder data; tokenization is server-side.
+
+---
+
 ## 0.9.0 — 2026-05-23
 
 Production polish + C1 adversarial-review closure. API-version pinning, idempotency TTL, webhook secret rotation, ASGI adapter, retry/recording transports, contract tests, lint automation, doc site, supply-chain hardening.

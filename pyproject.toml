@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "solvapay-python"
-version = "0.9.0"
+version = "0.9.1"
 description = "Community Python SDK for SolvaPay (agent-native payment rails)"
 readme = "README.md"
 license = { text = "MIT" }
@@ -63,6 +63,8 @@ dev = [
     "tenacity>=8.2,<10",
     "towncrier>=23",
     "pip-audit>=2.7",
+    "hypothesis>=6.100",
+    "bandit>=1.7",
 ]
 
 [tool.hatch.build.targets.wheel]

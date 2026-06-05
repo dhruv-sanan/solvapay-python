@@ -317,11 +317,21 @@ Default is `"2026-05-22"` (v0.9 ship date). Bump only on major SDK versions.
 |---------|-------|
 | v0.8 ✅ | V1 architecture spine — Transport kernel, OpSpec registry, paywall/webhook packages, `@payable_tool`, stability manifest, layer DAG CI gate |
 | v0.9 ✅ | Production polish — API-version pinning, idempotency TTL, `RetryTransport`, `RecordingTransport`, ASGI adapter, secret rotation, `sign_webhook`, contract tests, lint automation, MkDocs site, supply-chain hygiene |
+| v0.9.1 ✅ | Security & supply-chain quality — PyPI attestations (PEP 740 / Sigstore), CycloneDX SBOM on releases, `bandit` + `osv-scanner` CI, Hypothesis-driven secret-redaction property tests, constant-time `verify_webhook` smoke test, explicit PCI-scope statement |
 | v1.0 | Gated on founder signal — OpenAPI-generated models, WSGI/Lambda adapters, V2 planning |
 
 ---
 
 ## Status
 
-**v0.9.0** — Production polish + C1 closure. `mypy --strict` clean (45 files). 294 tests. 89% line / 87% branch coverage.  
+**v0.9.1** — Security & supply-chain quality patch. PyPI uploads now carry PEP 740 attestations (Sigstore-backed via OIDC trusted publishing); each GitHub release ships a CycloneDX SBOM (`sbom.cdx.json`). `mypy --strict` clean (45 files). 302 tests. 87% line / 85% branch coverage.
+
+**Supply chain & security posture:**
+- PyPI trusted publishing with PEP 740 attestations (Sigstore)
+- CycloneDX 1.6 SBOM attached to every release
+- CI runs `bandit -r src/ -lll`, `osv-scanner --lockfile=uv.lock`, and `pip-audit` (cross-DB vuln check) on PR and nightly cron
+- Constant-time HMAC comparison (`hmac.compare_digest`) regression-smoked
+- Hypothesis-driven property tests assert no API key, hex token, or webhook secret leaks into log output at any level
+- Tightened upper bounds on volatile deps (`httpx<0.29`, `pydantic<2.14`, `langchain-core<1.5`)
+
 Community SDK, not official. Proposal: [solvapay/solvapay-sdk#187](https://github.com/solvapay/solvapay-sdk/issues/187).
