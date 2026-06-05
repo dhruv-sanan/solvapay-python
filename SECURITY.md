@@ -13,8 +13,17 @@ This is a **community** Python SDK. It is not an official SolvaPay product.
 - SolvaPay server-side vulnerabilities
 - Issues requiring a SolvaPay account to reproduce
 
-**PCI scope:** The SDK never transmits raw cardholder data (PAN, CVV, expiry).
-It only exchanges SolvaPay API keys and customer references over HTTPS.
+## PCI Scope
+
+The SDK **never transmits raw cardholder data (PAN, CVV, expiry, track data)**.
+All tokenization happens **server-side** at the SolvaPay API; the SDK only
+exchanges SolvaPay API keys, customer references, and tokenized identifiers
+over HTTPS. Integrators using this SDK do not bring PAN data into their
+own application scope through it.
+
+If you discover any code path that would cause raw cardholder data to traverse
+the SDK boundary, treat it as a high-severity vulnerability and report it via
+the channel below.
 
 ## Reporting a Vulnerability
 
@@ -25,6 +34,9 @@ Please include:
 - Steps to reproduce
 - Any proof-of-concept code (privately)
 
+Encrypt sensitive payloads with the maintainer's public key on request.
+Do **not** open public GitHub issues for suspected vulnerabilities.
+
 **Response SLA:** Best-effort; typically within 7 days.
 **Disclosure policy:** 90-day coordinated disclosure. Public CVE filed only for confirmed SDK bugs.
 
@@ -32,5 +44,6 @@ Please include:
 
 | Version | Supported |
 |---------|-----------|
+| 0.9.x   | Yes       |
 | 0.8.x   | Yes       |
 | < 0.8   | No — upgrade recommended |
