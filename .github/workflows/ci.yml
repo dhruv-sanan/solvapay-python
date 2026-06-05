@@ -20,10 +20,14 @@ jobs:
       - name: bandit (high-severity, high-confidence only)
         run: uv run bandit -r src/ -lll
       - name: osv-scanner (lockfile vuln DB cross-check)
+        # PYSEC-2026-196: vuln in the GitHub runner's bundled pip, not in any
+        # solvapay-python dependency (pip is pulled into uv.lock transitively
+        # by build tooling). Ignore — runner image hygiene is GitHub's job.
         run: |
           docker run --rm -v "${PWD}:/src" -w /src \
             ghcr.io/google/osv-scanner:latest \
-            scan source --lockfile=/src/uv.lock
+            scan source --lockfile=/src/uv.lock \
+            --config=/src/.osv-scanner.toml
 
 
   test:

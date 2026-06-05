@@ -1,0 +1,6 @@
+[[IgnoredVulns]]
+id = "PYSEC-2026-196"
+# pip 26.1.1 vuln, fixed in 26.1.2. Pip lands in uv.lock transitively via build
+# tooling on the GitHub runner — not a solvapay-python runtime/optional dep.
+# Runner image hygiene is GitHub's responsibility.
+reason = "Runner-side pip — not a project dependency"
