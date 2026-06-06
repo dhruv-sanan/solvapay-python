@@ -1,10 +1,15 @@
 """Cold-import baseline harness.
 
 Runs ``python -X importtime -c "import solvapay"`` via subprocess, parses the
-highest cumulative time from the importtime output, and writes a baseline on
-first run. Subsequent runs assert the current time is within 1.5x the baseline.
+highest cumulative time from the importtime output, and writes a per-platform
+baseline on first run. Subsequent runs assert the current time is within 1.5x
+the baseline for that platform.
 
-CI prints the absolute ms value so regressions are visible in the test name.
+Baselines are keyed by ``sys.platform`` so Mac (darwin) and Linux (linux) each
+maintain their own reference. A fresh platform always writes a new entry and
+passes; the assertion only fires once the platform baseline exists.
+
+CI prints the absolute ms value so regressions are visible.
 The hard <200 ms gate is a v1.0 feature (HLD §V1.20); this only measures.
 """
 
@@ -19,6 +24,7 @@ from pathlib import Path
 BASELINE_PATH = Path(__file__).parent / "_baselines" / "cold_import.json"
 BASELINE_PATH.parent.mkdir(exist_ok=True)
 REGRESSION_FACTOR = 1.5
+PLATFORM = sys.platform  # e.g. "darwin", "linux", "win32"
 
 
 def _measure_import_ms() -> float:
@@ -40,27 +46,37 @@ def _measure_import_ms() -> float:
 
 
 def test_cold_import_baseline() -> None:
-    """Measure cold-import time and assert within 1.5x of committed baseline."""
+    """Measure cold-import time and assert within 1.5x of platform baseline."""
     current_ms = _measure_import_ms()
 
-    if not BASELINE_PATH.exists():
-        # Sanity: import must complete in <2 s even on first run (no regression).
+    # Load or create the baseline file.
+    baselines: dict[str, float] = {}
+    if BASELINE_PATH.exists():
+        raw = json.loads(BASELINE_PATH.read_text())
+        # Support legacy flat format {"cold_import_ms": X} from first write.
+        if "cold_import_ms" in raw and not any(k in raw for k in ("darwin", "linux", "win32")):
+            baselines = {PLATFORM: raw["cold_import_ms"]}
+        else:
+            baselines = raw
+
+    if PLATFORM not in baselines:
+        # Sanity: import must complete in <2 s even on first run.
         assert current_ms < 2000, (
             f"Cold-import took {current_ms:.0f} ms on first run — suspiciously slow"
         )
-        BASELINE_PATH.write_text(json.dumps({"cold_import_ms": round(current_ms, 2)}))
-        print(f"\n[cold-import] Baseline written: {current_ms:.1f} ms")
+        baselines[PLATFORM] = round(current_ms, 2)
+        BASELINE_PATH.write_text(json.dumps(baselines, sort_keys=True))
+        print(f"\n[cold-import] {PLATFORM} baseline written: {current_ms:.1f} ms")
         return
 
-    baseline = json.loads(BASELINE_PATH.read_text())
-    baseline_ms: float = baseline["cold_import_ms"]
+    baseline_ms: float = baselines[PLATFORM]
     limit_ms = baseline_ms * REGRESSION_FACTOR
 
     print(
-        f"\n[cold-import] current={current_ms:.1f} ms  "
+        f"\n[cold-import] platform={PLATFORM} current={current_ms:.1f} ms  "
         f"baseline={baseline_ms:.1f} ms  limit={limit_ms:.1f} ms"
     )
     assert current_ms <= limit_ms, (
-        f"Cold-import regression: {current_ms:.1f} ms > {limit_ms:.1f} ms "
+        f"Cold-import regression on {PLATFORM}: {current_ms:.1f} ms > {limit_ms:.1f} ms "
         f"(baseline={baseline_ms:.1f} ms x {REGRESSION_FACTOR})"
     )
