@@ -170,10 +170,11 @@ envelope = pipeline.process(body=request.body, signature=request.headers["sv-sig
 pipeline = WebhookPipeline(["whsec_new...", "whsec_old..."])
 ```
 
-**Sign a webhook** (testing / outbound fanout):
+**Sign a webhook** (testing / outbound fanout) — available at the top level since v0.9.2:
 
 ```python
-from solvapay.webhooks import sign_webhook
+from solvapay import sign_webhook          # top-level (v0.9.2+)
+# from solvapay.webhooks import sign_webhook  # subpackage path also works
 
 header = sign_webhook(body=b'{"type":"purchase.created"}', secret="whsec_...")
 # → "t=1716470000,v1=abc123..."
@@ -275,6 +276,7 @@ pip install 'solvapay-python[langchain]'      # + LangChain adapter (langchain-c
 pip install 'solvapay-python[fastapi]'        # + FastAPI webhook router
 pip install 'solvapay-python[asgi]'           # + raw ASGI webhook adapter (no extra deps)
 pip install 'solvapay-python[retry]'          # + RetryTransport (tenacity)
+pip install 'solvapay-python[bench]'          # + pytest-benchmark (dev/perf testing)
 ```
 
 ## Environment variables
@@ -325,7 +327,7 @@ Default is `"2026-05-22"` (v0.9 ship date). Bump only on major SDK versions.
 
 ## Status
 
-**v0.9.2** — Performance & stability quality patch. Cold-import baseline harness (`tests/test_cold_import.py`, 1.5× regression gate). PEP 562 lazy adapter imports — bare `import solvapay` no longer loads framework adapter modules. `solvapay.sign_webhook` promoted to top-level (alongside `verify_webhook`). Microbenchmark harness under `tests/benchmarks/` (opt-in `solvapay[bench]`). New docs: `docs/troubleshooting.md` (top-10 errors) and `docs/architecture/cold-start.md`. 304 tests. `mypy --strict` clean (45 files).
+**v0.9.2** — Performance & stability quality patch. Cold-import baseline harness (`tests/test_cold_import.py`, 1.5x regression gate). PEP 562 lazy adapter imports — bare `import solvapay` no longer loads framework adapter modules. `solvapay.sign_webhook` promoted to top-level (alongside `verify_webhook`). Microbenchmark harness under `tests/benchmarks/` (opt-in `solvapay[bench]`). New docs: `docs/troubleshooting.md` (top-10 errors) and `docs/architecture/cold-start.md`. 305 tests. 87% line coverage. `mypy --strict` clean (45 files).
 
 **v0.9.1** — Security & supply-chain quality patch. PyPI uploads now carry PEP 740 attestations (Sigstore-backed via OIDC trusted publishing); each GitHub release ships a CycloneDX SBOM (`sbom.cdx.json`). `mypy --strict` clean (45 files). 302 tests. 87% line / 85% branch coverage.
 

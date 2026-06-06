@@ -33,7 +33,9 @@ nav:
       - reference/models.md
       - reference/webhooks.md
       - reference/paywall.md
-  - Architecture: architecture/layers.md
+  - Architecture:
+      - Layers: architecture/layers.md
+      - Cold-Start: architecture/cold-start.md
   - Guides:
       - MCP: guides/mcp.md
       - LangChain: guides/langchain.md
@@ -42,3 +44,4 @@ nav:
   - Idempotency: idempotency.md
   - Webhooks: webhooks.md
   - Migration: migration.md
+  - Troubleshooting: troubleshooting.md
