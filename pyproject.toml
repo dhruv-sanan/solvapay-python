@@ -39,6 +39,7 @@ langchain = ["langchain-core>=0.3,<1.5"]
 mcp = ["fastmcp>=3.2.0,<4"]
 asgi = []  # raw ASGI; no extra deps required
 retry = ["tenacity>=8.2,<10"]
+bench = ["pytest-benchmark>=4.0,<6"]
 
 [project.urls]
 Homepage = "https://github.com/dhruv-sanan/solvapay-python"
@@ -94,7 +95,11 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-markers = ["contract: sandbox contract tests (require SOLVAPAY_SANDBOX_KEY)"]
+markers = [
+    "contract: sandbox contract tests (require SOLVAPAY_SANDBOX_KEY)",
+    "benchmark: microbenchmarks — run with: uv run pytest tests/benchmarks/ --benchmark-only",
+]
+addopts = "--ignore=tests/benchmarks"
 filterwarnings = [
     # Flat shim methods intentionally emit DeprecationWarning (removed in v2.0).
     # stacklevel=2 makes the warning appear from the test file, so module filter
