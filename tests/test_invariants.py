@@ -158,6 +158,28 @@ def test_product_camelcase_wire_format() -> None:
     assert data["defaultCurrency"] == "USD"
 
 
+def test_lazy_adapter_getattr() -> None:
+    """PEP 562 __getattr__ loads solvapay.adapters lazily (§1.5.2.2)."""
+    import sys
+
+    # Remove cached module to force __getattr__ to fire.
+    sys.modules.pop("solvapay.adapters", None)
+    import solvapay
+
+    # Ensure 'adapters' key is not pre-cached in the module's globals.
+    solvapay.__dict__.pop("adapters", None)
+
+    adapters = solvapay.adapters  # triggers __getattr__
+    assert adapters is not None
+    assert "adapters" in dir(solvapay)  # __dir__ covers it
+
+    # Unknown attr must raise AttributeError, not hang or return None.
+    import pytest
+
+    with pytest.raises(AttributeError):
+        _ = solvapay.__getattr__("nonexistent_symbol_xyz")  # type: ignore[attr-defined]
+
+
 def test_sign_webhook_top_level_export() -> None:
     """sign_webhook must be accessible at the solvapay top level (§1.5.2.4)."""
     import solvapay
