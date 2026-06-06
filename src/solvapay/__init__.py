@@ -37,7 +37,7 @@ from solvapay.exceptions import (
 )
 from solvapay.models import BalanceResponse, Merchant, Plan, PlatformConfig, Product
 from solvapay.paywall import PaywallRequired
-from solvapay.webhooks import verify_webhook
+from solvapay.webhooks import sign_webhook, verify_webhook
 
 # Register stable exports in MANIFEST (HLD V1.2).
 # stable(X) returns X unchanged — isinstance() continues to work (HLD SM1).
@@ -54,6 +54,7 @@ stable(APIServerError)
 stable(APIConnectionError)
 stable(APITimeoutError)
 stable(PaywallRequired)
+stable(sign_webhook)
 stable(verify_webhook)
 stable(BalanceResponse)
 stable(Product)
@@ -104,6 +105,7 @@ __all__ = [
     "deprecated",
     "experimental",
     "paywall",
+    "sign_webhook",
     "stable",
     "verify_webhook",
 ]

@@ -75,6 +75,10 @@
     "removed_in": null,
     "tier": "stable"
   },
+  "sign_webhook": {
+    "removed_in": null,
+    "tier": "stable"
+  },
   "verify_webhook": {
     "removed_in": null,
     "tier": "stable"
