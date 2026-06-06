@@ -99,6 +99,8 @@ __all__ = [
     "SolvaPayAPIError",
     "SolvaPayError",
     "WebhookEvent",
+    # adapters exposed lazily via __getattr__ below (PEP 562)
+    "adapters",
     "deprecated",
     "experimental",
     "paywall",
@@ -106,3 +108,26 @@ __all__ = [
     "verify_webhook",
 ]
 __version__ = "0.9.1"
+
+# PEP 562 — lazy adapter submodule access.
+# Adapters drag in optional heavy deps (fastmcp, langchain-core, fastapi).
+# __getattr__ defers their load until first access; they never load on bare
+# `import solvapay` for users who don't use framework adapters.
+_LAZY_MODULES = {
+    "adapters": "solvapay.adapters",
+}
+
+
+def __getattr__(name: str) -> object:
+    if name in _LAZY_MODULES:
+        import importlib
+
+        mod = importlib.import_module(_LAZY_MODULES[name])
+        globals()[name] = mod
+        return mod
+    raise AttributeError(f"module 'solvapay' has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    # PEP 562: include lazy names alongside normal module attrs.
+    return sorted(set(globals()) | set(_LAZY_MODULES))
