@@ -109,7 +109,7 @@ __all__ = [
     "stable",
     "verify_webhook",
 ]
-__version__ = "0.9.1"
+__version__ = "0.9.2"
 
 # PEP 562 — lazy adapter submodule access.
 # Adapters drag in optional heavy deps (fastmcp, langchain-core, fastapi).

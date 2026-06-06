@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.9.2] — 2026-06-06
+
+### Features
+
+- ``solvapay.sign_webhook`` promoted to top-level namespace (alongside ``verify_webhook``), closing the inconsistency flagged in v0.9.0 deviation #3. The existing ``solvapay.webhooks.sign_webhook`` path is unchanged.
+
+  Cold-import baseline harness at ``tests/test_cold_import.py``: measures ``python -X importtime`` cumulative time and asserts within 1.5x of a committed baseline. The hard <200 ms CI gate is a v1.0 feature (HLD §V1.20).
+
+  Microbenchmark harness at ``tests/benchmarks/``: measures ``SolvaPay()`` construction, ``verify_webhook`` per-call, and ``from_payload`` derivation. Opt-in via ``solvapay[bench]`` extra. Excluded from default pytest run.
+
+### Documentation
+
+- ``docs/troubleshooting.md``: top-10 user errors with symptom, cause, and fix. Covers missing env vars, async-in-sync deadlock, missing extras, contract test skips, Windows paths, deprecation warnings, paywall checkout URL, ``verify_webhook`` errors, mypy mock patterns, and PyPI dist-name confusion.
+
+  ``docs/architecture/cold-start.md``: explains the ``python -X importtime`` baseline harness, PEP 562 lazy adapter import pattern, and the v1.0 <150 ms cold-start budget (HLD §V1.20).
+
+### Performance
+
+- PEP 562 lazy adapter imports: bare ``import solvapay`` no longer loads ``fastmcp``, ``langchain-core``, or ``fastapi``. Framework adapter modules load on first attribute access only. ``solvapay.adapters`` is accessible via ``__getattr__`` and appears in ``dir(solvapay)``.
+
+
+---
+
 ## [0.9.1] — 2026-06-05
 
 Security & supply-chain quality patch (no public API change).

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "solvapay-python"
-version = "0.9.1"
+version = "0.9.2"
 description = "Community Python SDK for SolvaPay (agent-native payment rails)"
 readme = "README.md"
 license = { text = "MIT" }
@@ -134,4 +134,9 @@ showcontent = true
 [[tool.towncrier.type]]
 directory = "removal"
 name = "Removals"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "performance"
+name = "Performance"
 showcontent = true
