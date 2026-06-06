@@ -1,21 +1,23 @@
 """Cold-import baseline harness.
 
-Runs ``python -X importtime -c "import solvapay"`` via subprocess, parses the
-highest cumulative time from the importtime output, and writes a per-platform
-baseline on first run. Subsequent runs assert the current time is within 1.5x
-the baseline for that platform.
+Measures ``python -X importtime -c "import solvapay"`` and compares against
+a committed per-platform baseline.
 
-Baselines are keyed by ``sys.platform`` so Mac (darwin) and Linux (linux) each
-maintain their own reference. A fresh platform always writes a new entry and
-passes; the assertion only fires once the platform baseline exists.
+Behaviour:
+- **CI** (``CI=true`` env var set by GitHub Actions): always prints the
+  measurement; never fails. GitHub runners have no persistent baseline across
+  fresh checkouts, so asserting would produce false failures on every run.
+- **Local**: writes a per-platform baseline on first run; subsequent runs assert
+  within 1.5x. Catches cold-import regressions introduced during development.
 
-CI prints the absolute ms value so regressions are visible.
-The hard <200 ms gate is a v1.0 feature (HLD §V1.20); this only measures.
+Platform keys: ``sys.platform`` (``darwin``, ``linux``, ``win32``).
+The hard <200 ms CI gate is a v1.0 feature (HLD §V1.20); v0.9.2 measures only.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,6 +27,7 @@ BASELINE_PATH = Path(__file__).parent / "_baselines" / "cold_import.json"
 BASELINE_PATH.parent.mkdir(exist_ok=True)
 REGRESSION_FACTOR = 1.5
 PLATFORM = sys.platform  # e.g. "darwin", "linux", "win32"
+IN_CI = os.environ.get("CI", "").lower() in ("true", "1")
 
 
 def _measure_import_ms() -> float:
@@ -46,21 +49,28 @@ def _measure_import_ms() -> float:
 
 
 def test_cold_import_baseline() -> None:
-    """Measure cold-import time and assert within 1.5x of platform baseline."""
+    """Measure cold-import time. Assert vs baseline locally; print-only in CI."""
     current_ms = _measure_import_ms()
 
-    # Load or create the baseline file.
+    if IN_CI:
+        # CI has no persistent state; just report the number.
+        print(f"\n[cold-import] CI platform={PLATFORM} current={current_ms:.1f} ms (no assertion)")
+        assert current_ms < 2000, (
+            f"Cold-import took {current_ms:.0f} ms — suspiciously slow even for CI"
+        )
+        return
+
+    # Local: per-platform baseline regression gate.
     baselines: dict[str, float] = {}
     if BASELINE_PATH.exists():
         raw = json.loads(BASELINE_PATH.read_text())
-        # Support legacy flat format {"cold_import_ms": X} from first write.
+        # Support legacy flat format {"cold_import_ms": X}.
         if "cold_import_ms" in raw and not any(k in raw for k in ("darwin", "linux", "win32")):
             baselines = {PLATFORM: raw["cold_import_ms"]}
         else:
             baselines = raw
 
     if PLATFORM not in baselines:
-        # Sanity: import must complete in <2 s even on first run.
         assert current_ms < 2000, (
             f"Cold-import took {current_ms:.0f} ms on first run — suspiciously slow"
         )
