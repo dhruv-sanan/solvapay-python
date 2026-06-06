@@ -30,7 +30,7 @@ def test_verify_webhook_per_call(benchmark: Any) -> None:
     """verify_webhook per-call cost (HMAC-SHA256 + header parse)."""
     from solvapay.webhooks import sign_webhook, verify_webhook
 
-    secret = "whsec_benchmarksecret"
+    secret = "whsec_test_bench"
     body = b'{"id":"evt_bench","type":"payment.succeeded"}'
     ts = int(_time.time())
     sig = sign_webhook(body, secret, timestamp=ts)
