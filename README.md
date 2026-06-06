@@ -318,11 +318,14 @@ Default is `"2026-05-22"` (v0.9 ship date). Bump only on major SDK versions.
 | v0.8 ✅ | V1 architecture spine — Transport kernel, OpSpec registry, paywall/webhook packages, `@payable_tool`, stability manifest, layer DAG CI gate |
 | v0.9 ✅ | Production polish — API-version pinning, idempotency TTL, `RetryTransport`, `RecordingTransport`, ASGI adapter, secret rotation, `sign_webhook`, contract tests, lint automation, MkDocs site, supply-chain hygiene |
 | v0.9.1 ✅ | Security & supply-chain quality — PyPI attestations (PEP 740 / Sigstore), CycloneDX SBOM on releases, `bandit` + `osv-scanner` CI, Hypothesis-driven secret-redaction property tests, constant-time `verify_webhook` smoke test, explicit PCI-scope statement |
+| v0.9.2 ✅ | Performance & stability quality — cold-import baseline harness, PEP 562 lazy adapter imports, `solvapay.sign_webhook` top-level re-export, microbenchmark harness (`solvapay[bench]`), troubleshooting docs |
 | v1.0 | Gated on founder signal — OpenAPI-generated models, WSGI/Lambda adapters, V2 planning |
 
 ---
 
 ## Status
+
+**v0.9.2** — Performance & stability quality patch. Cold-import baseline harness (`tests/test_cold_import.py`, 1.5× regression gate). PEP 562 lazy adapter imports — bare `import solvapay` no longer loads framework adapter modules. `solvapay.sign_webhook` promoted to top-level (alongside `verify_webhook`). Microbenchmark harness under `tests/benchmarks/` (opt-in `solvapay[bench]`). New docs: `docs/troubleshooting.md` (top-10 errors) and `docs/architecture/cold-start.md`. 304 tests. `mypy --strict` clean (45 files).
 
 **v0.9.1** — Security & supply-chain quality patch. PyPI uploads now carry PEP 740 attestations (Sigstore-backed via OIDC trusted publishing); each GitHub release ships a CycloneDX SBOM (`sbom.cdx.json`). `mypy --strict` clean (45 files). 302 tests. 87% line / 85% branch coverage.
 
