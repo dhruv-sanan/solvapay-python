@@ -44,6 +44,10 @@ def test_cold_import_baseline() -> None:
     current_ms = _measure_import_ms()
 
     if not BASELINE_PATH.exists():
+        # Sanity: import must complete in <2 s even on first run (no regression).
+        assert current_ms < 2000, (
+            f"Cold-import took {current_ms:.0f} ms on first run — suspiciously slow"
+        )
         BASELINE_PATH.write_text(json.dumps({"cold_import_ms": round(current_ms, 2)}))
         print(f"\n[cold-import] Baseline written: {current_ms:.1f} ms")
         return
