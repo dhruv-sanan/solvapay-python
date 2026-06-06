@@ -158,6 +158,16 @@ def test_product_camelcase_wire_format() -> None:
     assert data["defaultCurrency"] == "USD"
 
 
+def test_sign_webhook_top_level_export() -> None:
+    """sign_webhook must be accessible at the solvapay top level (§1.5.2.4)."""
+    import solvapay
+
+    assert callable(solvapay.sign_webhook)
+    # Verify it produces the expected sv-signature format.
+    sig = solvapay.sign_webhook(b'{"id":"evt_1"}', "whsec_test", timestamp=1700000000)
+    assert sig.startswith("t=1700000000,v1=")
+
+
 def test_paywall_required_carries_checkout_url() -> None:
     """PaywallRequired must preserve checkout_url through the decorator."""
     url = "https://checkout.example.com/upgrade"
