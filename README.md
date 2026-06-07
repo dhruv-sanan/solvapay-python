@@ -321,11 +321,14 @@ Default is `"2026-05-22"` (v0.9 ship date). Bump only on major SDK versions.
 | v0.9 ✅ | Production polish — API-version pinning, idempotency TTL, `RetryTransport`, `RecordingTransport`, ASGI adapter, secret rotation, `sign_webhook`, contract tests, lint automation, MkDocs site, supply-chain hygiene |
 | v0.9.1 ✅ | Security & supply-chain quality — PyPI attestations (PEP 740 / Sigstore), CycloneDX SBOM on releases, `bandit` + `osv-scanner` CI, Hypothesis-driven secret-redaction property tests, constant-time `verify_webhook` smoke test, explicit PCI-scope statement |
 | v0.9.2 ✅ | Performance & stability quality — cold-import baseline harness, PEP 562 lazy adapter imports, `solvapay.sign_webhook` top-level re-export, microbenchmark harness (`solvapay[bench]`), troubleshooting docs |
+| v0.9.3 ✅ | Layer DAG hard-enforcement — single `type = layers` `import-linter` contract replaces three sparse `forbidden` contracts; closes the L2 `models` purity gap and the L5 `paywall`/`webhooks` framework-neutrality gap; `exhaustive = true` flags any unlayered top-level module; `ignore_type_checking_imports = true` keeps cross-layer type hints lint-clean |
 | v1.0 | Gated on founder signal — OpenAPI-generated models, WSGI/Lambda adapters, V2 planning |
 
 ---
 
 ## Status
+
+**v0.9.3** — Layer DAG hard-enforcement quality patch. `tools/importlinter.cfg` now ships a single `type = layers` contract covering the full HLD §V1.1 DAG (`_transport → _http → models → operations → client → paywall|webhooks → adapters → fastapi|langchain`), replacing three sparse `forbidden` contracts. `exhaustive = true` flags any new top-level module that ships without an explicit layer assignment; `ignore_type_checking_imports = true` strips `TYPE_CHECKING` blocks from the dependency graph so cross-layer type hints do not trip the gate. New `tests/test_layer_dag.py` shells the contract from pytest as a belt-and-suspenders gate. `docs/architecture/layers.md` refreshed. CI-only change; no public-API impact. 306 tests. 87% line coverage. `mypy --strict` clean (45 files).
 
 **v0.9.2** — Performance & stability quality patch. Cold-import baseline harness (`tests/test_cold_import.py`, 1.5x regression gate). PEP 562 lazy adapter imports — bare `import solvapay` no longer loads framework adapter modules. `solvapay.sign_webhook` promoted to top-level (alongside `verify_webhook`). Microbenchmark harness under `tests/benchmarks/` (opt-in `solvapay[bench]`). New docs: `docs/troubleshooting.md` (top-10 errors) and `docs/architecture/cold-start.md`. 305 tests. 87% line coverage. `mypy --strict` clean (45 files).
 
