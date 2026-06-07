@@ -1,0 +1,1565 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Community Python SDK for SolvaPay (agent-native payment rails)">
+      
+      
+      
+      
+        <link rel="prev" href="../migration/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Troubleshooting - solvapay-python</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#troubleshooting" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="solvapay-python" class="md-header__button md-logo" aria-label="solvapay-python" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            solvapay-python
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Troubleshooting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dhruv-sanan/solvapay-python" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dhruv-sanan/solvapay-python
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quickstart
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/client/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/layers/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../guides/mcp/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../errors/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Errors
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../idempotency/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Idempotency
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../webhooks/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Webhooks
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../migration/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Migration
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="solvapay-python" class="md-nav__button md-logo" aria-label="solvapay-python" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    solvapay-python
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dhruv-sanan/solvapay-python" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dhruv-sanan/solvapay-python
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/exceptions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exceptions Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/webhooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Webhooks Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/paywall/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paywall Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/layers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/cold-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cold-Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/langchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/fastapi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FastAPI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../idempotency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Idempotency
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../webhooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Webhooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-authenticationerror-api-key-not-set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. AuthenticationError — API key not set
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-async-in-sync-deadlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Async-in-sync deadlock
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-modulenotfounderror-missing-optional-extra" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. ModuleNotFoundError — missing optional extra
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-contract-tests-skip-silently" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Contract tests skip silently
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-windows-virtualenv-uv-path-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Windows virtualenv / uv path issues
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-deprecationwarning-flat-method-deprecated-in-test-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. DeprecationWarning: Flat method deprecated in test output
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-paywallrequired-raised-with-checkout_urlnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. PaywallRequired raised with checkout_url=None
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-verify_webhook-raises-valueerror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. verify_webhook raises ValueError
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-mypy-strict-errors-in-paywall-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. mypy --strict errors in paywall tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-pip-install-solvapay-vs-pip-install-solvapay-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. pip install solvapay vs pip install solvapay-python
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-authenticationerror-api-key-not-set" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. AuthenticationError — API key not set
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-async-in-sync-deadlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Async-in-sync deadlock
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-modulenotfounderror-missing-optional-extra" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. ModuleNotFoundError — missing optional extra
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-contract-tests-skip-silently" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Contract tests skip silently
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-windows-virtualenv-uv-path-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Windows virtualenv / uv path issues
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-deprecationwarning-flat-method-deprecated-in-test-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. DeprecationWarning: Flat method deprecated in test output
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-paywallrequired-raised-with-checkout_urlnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. PaywallRequired raised with checkout_url=None
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-verify_webhook-raises-valueerror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. verify_webhook raises ValueError
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-mypy-strict-errors-in-paywall-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. mypy --strict errors in paywall tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-pip-install-solvapay-vs-pip-install-solvapay-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. pip install solvapay vs pip install solvapay-python
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="troubleshooting">Troubleshooting</h1>
+<p>Common errors and how to fix them.</p>
+<hr />
+<h2 id="1-authenticationerror-api-key-not-set">1. <code>AuthenticationError</code> — API key not set</h2>
+<p><strong>Symptom:</strong></p>
+<pre><code>solvapay.exceptions.AuthenticationError: No API key provided.
+</code></pre>
+<p><strong>Cause:</strong> <code>SOLVAPAY_SECRET_KEY</code> env var is not set and no <code>api_key=</code> argument was passed.</p>
+<p><strong>Fix:</strong></p>
+<pre><code class="language-bash">export SOLVAPAY_SECRET_KEY=sk_sandbox_...
+</code></pre>
+<p>Or pass it explicitly:</p>
+<pre><code class="language-python">sv = SolvaPay(api_key=&quot;sk_sandbox_...&quot;)
+</code></pre>
+<hr />
+<h2 id="2-async-in-sync-deadlock">2. Async-in-sync deadlock</h2>
+<p><strong>Symptom:</strong></p>
+<pre><code>RuntimeError: cannot run event loop while another event loop is running
+</code></pre>
+<p>Or a call to <code>await sv.customers.ensure(...)</code> hangs indefinitely.</p>
+<p><strong>Cause:</strong> Mixing <code>AsyncSolvaPay</code> with sync framework code, or running async SDK methods from a Jupyter notebook without <code>await</code>.</p>
+<p><strong>Fix:</strong> Use <code>SolvaPay</code> (sync) for sync frameworks (FastAPI route handlers are async — use <code>AsyncSolvaPay</code> there). In Jupyter, <code>await</code> the call directly or use <code>asyncio.run()</code> in a standalone script.</p>
+<pre><code class="language-python"># FastAPI — use AsyncSolvaPay
+@app.get(&quot;/check&quot;)
+async def check(customer_ref: str):
+    async with AsyncSolvaPay() as sv:
+        result = await sv.limits.acheck(customer_ref=customer_ref, product_ref=&quot;prd_x&quot;)
+    return result
+</code></pre>
+<hr />
+<h2 id="3-modulenotfounderror-missing-optional-extra">3. <code>ModuleNotFoundError</code> — missing optional extra</h2>
+<p><strong>Symptom:</strong></p>
+<pre><code>ModuleNotFoundError: No module named 'fastmcp'
+ModuleNotFoundError: No module named 'langchain_core'
+ModuleNotFoundError: No module named 'tenacity'
+</code></pre>
+<p><strong>Cause:</strong> Optional adapter or middleware not installed.</p>
+<p><strong>Fix:</strong> Install the relevant extra:</p>
+<pre><code class="language-bash">pip install solvapay-python[mcp]       # fastmcp
+pip install solvapay-python[langchain] # langchain-core
+pip install solvapay-python[retry]     # tenacity (RetryTransport)
+pip install solvapay-python[fastapi]   # fastapi
+pip install solvapay-python[bench]     # pytest-benchmark (dev only)
+</code></pre>
+<hr />
+<h2 id="4-contract-tests-skip-silently">4. Contract tests skip silently</h2>
+<p><strong>Symptom:</strong></p>
+<pre><code>3 skipped — SOLVAPAY_SANDBOX_KEY not set
+</code></pre>
+<p><strong>Cause:</strong> Sandbox tests require a live sandbox key and are intentionally skipped in CI unless the secret is configured.</p>
+<p><strong>Fix:</strong> For local sandbox testing:</p>
+<pre><code class="language-bash">export SOLVAPAY_SANDBOX_KEY=sk_sandbox_...
+export SOLVAPAY_TEST_CUSTOMER_REF=cus_...
+export SOLVAPAY_TEST_PRODUCT_REF=prd_...
+uv run pytest -m contract
+</code></pre>
+<hr />
+<h2 id="5-windows-virtualenv-uv-path-issues">5. Windows virtualenv / <code>uv</code> path issues</h2>
+<p><strong>Symptom:</strong></p>
+<pre><code>FileNotFoundError: [WinError 2] The system cannot find the file specified
+</code></pre>
+<p>Or <code>uv run</code> fails to find the installed package.</p>
+<p><strong>Cause:</strong> Windows uses different path separators and virtualenv activation conventions.</p>
+<p><strong>Fix:</strong> Use <code>uv</code> from the project root — it manages the <code>.venv</code> automatically:</p>
+<pre><code class="language-bat">cd path\to\solvapay-python
+uv sync --all-extras --dev
+uv run pytest
+</code></pre>
+<p>Do not manually activate the venv; let <code>uv run</code> handle it.</p>
+<hr />
+<h2 id="6-deprecationwarning-flat-method-deprecated-in-test-output">6. <code>DeprecationWarning: Flat method deprecated</code> in test output</h2>
+<p><strong>Symptom:</strong></p>
+<pre><code>DeprecationWarning: Flat method deprecated. Use sv.customers.ensure(...) instead.
+</code></pre>
+<p><strong>Cause:</strong> Old flat-method API (e.g. <code>sv.ensure_customer(...)</code>) is still being called. These shims emit a <code>DeprecationWarning</code> on every call and will be removed in v2.0.</p>
+<p><strong>Fix:</strong> Migrate to the namespace API:</p>
+<pre><code class="language-python"># Old (deprecated)
+sv.ensure_customer(&quot;ext_ref&quot;)
+
+# New (stable)
+sv.customers.ensure(&quot;ext_ref&quot;)
+</code></pre>
+<p>To silence the warning in tests that still use the old path intentionally, add to <code>pyproject.toml</code>:</p>
+<pre><code class="language-toml">filterwarnings = [&quot;ignore:Flat method deprecated:DeprecationWarning&quot;]
+</code></pre>
+<hr />
+<h2 id="7-paywallrequired-raised-with-checkout_urlnone">7. <code>PaywallRequired</code> raised with <code>checkout_url=None</code></h2>
+<p><strong>Symptom:</strong></p>
+<pre><code class="language-python">except PaywallRequired as e:
+    print(e.checkout_url)  # None — no redirect URL available
+</code></pre>
+<p><strong>Cause:</strong> In v0.8/v0.9, the SDK does NOT automatically call <code>checkout.create_session()</code> on every gate hit. Auto-minting is triggered only when the <code>LimitResponse</code> from the server includes a <code>checkoutUrl</code> field.</p>
+<p><strong>Fix:</strong> Use <code>paywall_state.gate()</code> for a fully enriched decision, or construct the checkout URL yourself:</p>
+<pre><code class="language-python">from solvapay.paywall_state import gate
+
+decision = gate(sv, customer_ref=ref, product_ref=&quot;prd_x&quot;)
+if decision.state != PaywallState.OK:
+    redirect_to(decision.checkout_url)
+</code></pre>
+<p>Note: in v1.0 this behavior changes — see <code>HLD.md §V1.6 PW4</code>.</p>
+<hr />
+<h2 id="8-verify_webhook-raises-valueerror">8. <code>verify_webhook</code> raises <code>ValueError</code></h2>
+<p><strong>Symptom:</strong></p>
+<pre><code>ValueError: No valid signature found
+ValueError: Request timestamp too old
+</code></pre>
+<p><strong>Cause:</strong>
+- Wrong secret (key rotation in progress, or <code>SOLVAPAY_WEBHOOK_SECRET</code> not matching the SolvaPay dashboard secret).
+- System clock drift exceeding <code>tolerance</code> (default 300 seconds).</p>
+<p><strong>Fix:</strong></p>
+<pre><code class="language-python"># Check your secret matches the SolvaPay dashboard exactly.
+verify_webhook(body=raw_body, signature=header, secret=os.environ[&quot;SOLVAPAY_WEBHOOK_SECRET&quot;])
+
+# For testing with sign_webhook, pass a recent timestamp:
+from solvapay.webhooks import sign_webhook
+sig = sign_webhook(body, secret, timestamp=int(time.time()))
+</code></pre>
+<hr />
+<h2 id="9-mypy-strict-errors-in-paywall-tests">9. <code>mypy --strict</code> errors in paywall tests</h2>
+<p><strong>Symptom:</strong></p>
+<pre><code>error: Argument &quot;client&quot; to &quot;Paywall&quot; has incompatible type &quot;MagicMock&quot;; expected &quot;SolvaPay&quot;
+</code></pre>
+<p><strong>Cause:</strong> <code>MagicMock(spec=SolvaPay)</code> does not know about instance attrs like <code>.limits</code>, <code>.customers</code> set in <code>__init__</code>. The spec reflects the class, not the instance.</p>
+<p><strong>Fix:</strong> Use plain <code>MagicMock()</code> without <code>spec=</code>:</p>
+<pre><code class="language-python"># WRONG
+client = MagicMock(spec=SolvaPay)  # AttributeError on .limits
+
+# CORRECT
+client = MagicMock()
+client.limits.check.return_value = LimitResponse(within_limits=True, remaining=5)
+</code></pre>
+<p>Add <code># type: ignore[arg-type]</code> on the <code>Paywall(client=...)</code> line to satisfy mypy strict.</p>
+<hr />
+<h2 id="10-pip-install-solvapay-vs-pip-install-solvapay-python">10. <code>pip install solvapay</code> vs <code>pip install solvapay-python</code></h2>
+<p><strong>Symptom:</strong></p>
+<pre><code>ERROR: No matching distribution found for solvapay
+</code></pre>
+<p>Or: installed <code>solvapay</code> but <code>from solvapay import SolvaPay</code> is empty / old.</p>
+<p><strong>Cause:</strong> The distribution is named <code>solvapay-python</code> on PyPI (avoids namespace conflict before official adoption). The import name is still <code>solvapay</code>.</p>
+<p><strong>Fix:</strong></p>
+<pre><code class="language-bash">pip install solvapay-python          # correct
+pip install solvapay-python[mcp]     # with MCP adapter
+</code></pre>
+<p>The import surface is unchanged:</p>
+<pre><code class="language-python">from solvapay import SolvaPay, AsyncSolvaPay
+</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
