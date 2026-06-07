@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.3] — 2026-06-07
+
+### Features
+
+- **Layer DAG now hard-enforced via single layered `import-linter` contract.** `tools/importlinter.cfg` replaces three sparse `forbidden` contracts with one `type = layers` contract covering the full HLD §V1.1 DAG (`_transport → _http → models → operations → client → paywall|webhooks → adapters → fastapi|langchain`). Closes the L2 `models` purity gap and the L5 `paywall`/`webhooks` framework-neutrality gap. `exhaustive = true` flags any new top-level module that ships without an explicit layer assignment. `ignore_type_checking_imports = true` strips `TYPE_CHECKING` blocks from the graph so cross-layer type hints do not trip the gate. CI-only change; no public-API impact.
+
+
 ## [0.9.2] — 2026-06-06
 
 ### Features
