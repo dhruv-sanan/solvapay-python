@@ -35,7 +35,7 @@ dependencies = [
 [project.optional-dependencies]
 # FastAPI: no upper bound — stable public API, low-risk drift (v0.9.0 deviation #2).
 fastapi = ["fastapi>=0.110"]
-langchain = ["langchain-core>=0.3,<1.5"]
+langchain = ["langchain-core>=0.3,<1.7"]
 mcp = ["fastmcp>=3.2.0,<4"]
 asgi = []  # raw ASGI; no extra deps required
 retry = ["tenacity>=8.2,<10"]
@@ -53,7 +53,7 @@ docs = [
 ]
 dev = [
     "fastapi>=0.110",
-    "langchain-core>=0.3,<1.5",
+    "langchain-core>=0.3,<1.7",
     "pytest>=8",
     "pytest-asyncio>=0.23",
     "respx>=0.21",
