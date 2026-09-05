@@ -36,7 +36,7 @@ dependencies = [
 # FastAPI: no upper bound — stable public API, low-risk drift (v0.9.0 deviation #2).
 fastapi = ["fastapi>=0.110"]
 langchain = ["langchain-core>=0.3,<1.5"]
-mcp = ["fastmcp>=3.2.0,<4"]
+mcp = ["fastmcp>=3.2.0,<5"]
 asgi = []  # raw ASGI; no extra deps required
 retry = ["tenacity>=8.2,<10"]
 bench = ["pytest-benchmark>=4.0,<6"]
